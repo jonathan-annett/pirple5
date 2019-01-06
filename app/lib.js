@@ -414,7 +414,6 @@ lib.checkLogRollover = function ( logEntry, cb ) {
                     return newFile();
                 }
                 
-                console.log({loggingStarted:{fn,nextEntry}});
                 
                 if (typeof cb==="function") return cb();   
             });
@@ -445,13 +444,12 @@ lib.init = function(cb){
                
                if (list.length <= lib.config.max_log_uncompressed) {
                    return lib.checkLogRollover(startupEntry,function(){
+                       console.log({loggingStarted:startupEntry});
                        if (typeof cb==="function") cb();
                    });
                }
                
-                debugger;
-                
-                lib.compressFile(list[0].fn,function(err,e,fn){
+                  lib.compressFile(list[0].fn,function(err,e,fn){
                     if (err) {
                         console.log(err);
                         if (typeof cb==="function") cb(err);
