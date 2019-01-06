@@ -20,3 +20,4 @@ var [ fs,
 
 var lib = module.exports = {};
 
+console.log(zlib);
