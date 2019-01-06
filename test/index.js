@@ -106,9 +106,15 @@ var printReport = function(failLimit,testLimit) {
     var hr = Array(process.stdout.columns).join("-");
     var testSetNames = Object.keys(_app.tests);
     
-    var indentStr = function(str,indent,prefix) {
-        prefix=prefix?prefix:"";
-        str.split("\n").forEach(function(line){console.log(Array(indent+1).join(" ")+prefix+line);});
+    var indentStr = function(str,indent,shiftCount,popCount) {
+        shiftCount=shiftCount?shiftCount:0;
+        popCount=popCount?popCount:0;
+        var lines = str.split("\n");
+        
+        while (shiftCount>0) lines.shift();
+        while (popCount>0) lines.pop();
+        
+        lines.forEach(function(line){console.log(Array(indent+1).join(" ")+line);});
     };
     
     var collateStats = function (stats) {
@@ -122,6 +128,9 @@ var printReport = function(failLimit,testLimit) {
             return 0;
         } 
     };
+    
+    
+    collateStats(_app.stats);
     
     testSetNames.forEach(function(testSetName){
         var stats = _app.setStats[testSetName];
@@ -172,10 +181,10 @@ var printReport = function(failLimit,testLimit) {
                 stats.errors.forEach(function(failedTestFN){
                     console.log("          Test:       "+failedTestFN.testName);
                     console.log("          Error:");
-                    indentStr(String(failedTestFN.exception),12,"|");
+                    indentStr(String(failedTestFN.exception),10);
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
-                    indentStr(String(failedTestFN.toString()),12,"|");
+                    indentStr(String(failedTestFN.toString()),10,1,1);
                     console.log(""); 
                 });
             }
