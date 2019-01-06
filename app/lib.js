@@ -2,36 +2,35 @@
 
 this is a log file manager.
 
-it occurred to me that my previous 4 projects did not formally handle logging,
-even though earlier lessons covered that topic. 
-
-Since previous assignments did not specify logging at all, I never implemented logging
-
-tests will include that all log files created must be valid json, or compressed valid json
-
 
 */
 
-/* explode-require the node-libs we need */
+/*
+Copyright 2019 Jonathan Annett
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 "use strict";
-
+/* explode-require the node-libs we need */
 var [ fs, path, zlib ] = "fs,path,zlib".split(",").map(require);
 
-
+/* lib is exported */
 var lib = module.exports = {};
 
 lib.config = {
-    max_log_size : 1024*1024,
-    max_log_entries : 10,
-    max_log_hours : 0.1,
-    max_log_uncompressed : 5,
-    max_file_cache : 10,
+    maxLogSizeBytes            : 1024*1024,
+    maxLogEntriesPerFile       : 10,
+    maxLogHoursPerFile         : 0.1,
+    maxUncompressedFileCount    : 5,
+    max_file_cache          : 10,
 };
 
 lib.basedir = path.join(__dirname,'..','.logs');
 
-//lib.logFileName --> a string "path/to/filename/lib-??????.json"
+//lib.logFileName(f) --> a String "path/to/filename/lib-??????.json"
+// f can be a String(filename), a Date or a Number (timestamp)
 lib.logFileName=function(f) {
     switch (typeof f) {
       case 'string' :
@@ -50,6 +49,8 @@ lib.logFileName=function(f) {
     return false;
 };
 
+//lib.logFileEpoch(f) --> a Number = timestamp of first entry in file
+// f can be a String(filename), a Date or a Number (timestamp)
 lib.logFileEpoch=function(f) {
     switch (typeof f) {
       case 'string' :
@@ -77,6 +78,8 @@ lib.logFileEpoch=function(f) {
     return false;
 };
 
+//lib.logFileEpoch(f) --> a String "path/to/filename/lib-??????.json.gz"
+// f can be a String(filename), a Date or a Number (timestamp)
 lib.compressedLogFileName=function(f) {
     f = lib.logFileEpoch (f);
     if (f===false) return false;
@@ -163,7 +166,6 @@ lib.createLogListItem = function (opt,fn) {
 
 };
    
-       
 lib.listLogs = function(opt,cb){
     if (typeof opt === 'function') {
         cb=opt;
@@ -197,7 +199,7 @@ lib.createFile = function (firstEntry,cb){
     var fn = lib.logFileName(when);
     if (fn===false) throw new Error("Unknown error establishing log filename");
 
-    var file_string = JSON.stringify([when,firstEntry]);
+    var file_string = JSON.stringify([{t:when,e:firstEntry}]);
     
     fs.writeFile(fn,file_string,function(err){
         if (err) {
@@ -216,7 +218,10 @@ lib.extendFile = function (f,nextEntry,cb){
     if (typeof nextEntry!=='object') {
          cb(new Error("invalid log Entry"));       
     }
-    var buffer = new Buffer(",\n"+JSON.stringify([when,nextEntry]).substr(1));
+    
+    // make a buffer we will use to extend the file, which omits the opening [
+    var buffer = new Buffer(",\n"+(JSON.stringify([{t:when,e:nextEntry}]).substr(1)));
+    
     fs.stat(fn,function(err,stats){
         if (err||!stats) return cb(err);
         fs.open(fn,'r+',function(err,fd){
@@ -247,10 +252,10 @@ lib.arrayExtendFile = function (f,nextEntries,cb){
     }
     var stampedEntries=[];
     nextEntries.forEach(function(e){
-        stampedEntries.push(when);
-        stampedEntries.push(e);
+        stampedEntries.push({t:when,e:e});
     });
-    var buffer = new Buffer(",\n"+JSON.stringify(stampedEntries).substr(1));
+    // make a buffer we will use to extend the file, which omits the opening [
+    var buffer = new Buffer(",\n"+(JSON.stringify(stampedEntries).substr(1)));
     fs.stat(fn,function(err,stats){
         if (err||!stats) return cb(err);
         fs.open(fn,'r+',function(err,fd){
@@ -388,14 +393,8 @@ lib.getEntries = function(epoch,cb){
        fs.readFile(fn,function(err,buffer){
            try {
                
-               var entries = {};
-               var array = JSON.parse(buffer);
-               for(var i = 0; i < array.length; ) {
-                   var when = array[i++];
-                   var entry = array[i++];
-                   entries[when]=entry;
-               }
-               
+               var entries = JSON.parse(buffer);
+              
                //cache the data we just read, and 
                lib.getEntriesCache[epoch]=entries;
                lib.getEntriesCache_.unshift(epoch);
@@ -427,7 +426,7 @@ lib.getLogNextEntries = function ( entries, count, cb  ) {
 
 lib.currentLogFile = false;
 
-lib.checkLogRollover = function ( logEntry, cb ) { 
+lib.log = function ( logEntry, cb ) { 
     if (typeof logEntry === 'function') {
         cb = logEntry;
         logEntry = undefined;
@@ -439,19 +438,32 @@ lib.checkLogRollover = function ( logEntry, cb ) {
                 return console.log({err:err});
             }
             
-            lib.currentLogFile  = lib.createLogListItem({},path.basename(fn));
+            // create lib.currentLogFile as a single list item entry 
+            // (it will not live in a list however, we just need one as there is no "last log file used")
             
+            if (lib.currentLogFile && lib.currentLogFile.entries) {
+                lib.getEntriesCache[lib.currentLogFile.epoch] = lib.currentLogFile.entries;
+                lib.getEntriesCache_.push(lib.currentLogFile.epoch);
+                delete lib.currentLogFile.entries;
+                delete lib.currentLogFile;
+            }
+            
+            lib.currentLogFile  = lib.createLogListItem({},path.basename(fn));
             if (typeof logEntry === 'object') {
     
                 lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
+                    
                     if (err) {
                         return console.log({err:err});
                     }
+                    lib.currentLogFile.entries = [nextEntry];
                     if (typeof cb==="function") cb(undefined,fn,nextEntry);  
                 });
             
             } else {
+                lib.currentLogFile.entries = [];
                 if (typeof cb==="function") cb(undefined,fn);   
+                
             }
         });
     };
@@ -466,21 +478,23 @@ lib.checkLogRollover = function ( logEntry, cb ) {
     
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
+            
             console.log({LogFileEntriesCount:entries.length});
-            if ( err ||  ! entries ||   (entries.length > lib.config.max_log_entries)  ) {
+            if ( err ||  ! entries ||   (entries.length > lib.config.maxLogEntriesPerFile)  ) {
                     return newFile();
              }
              
              console.log({LogFileSize:lib.currentLogFile.uncompressed_size});
-             if (lib.currentLogFile.uncompressed_size > lib.config.max_log_size) {
+             if (lib.currentLogFile.uncompressed_size > lib.config.maxLogSizeBytes) {
                   return newFile();
              }
              
              var msec_per_hour = (1000 * 60 * 60);
              var age_in_hours = (Date.now()-lib.currentLogFile.epoch) / msec_per_hour;
              
-             console.log({vs:{LogFileHours:age_in_hours,limit:lib.config.max_log_hours}});
-             if ( age_in_hours >  lib.config.max_log_hours ) {
+             console.log({vs:{LogFileHours:age_in_hours,limit:lib.config.maxLogHoursPerFile}});
+             
+             if ( age_in_hours >  lib.config.maxLogHoursPerFile ) {
                      return newFile();
              }
             
@@ -491,6 +505,7 @@ lib.checkLogRollover = function ( logEntry, cb ) {
                     return newFile();
                 }
                 
+                lib.currentLogFile.entries.push(nextEntry);
                 
                 if (typeof cb==="function") return cb();   
             });
@@ -519,8 +534,8 @@ lib.init = function(cb){
            
            var compressOldFiles=function() {
                
-               if (list.length <= lib.config.max_log_uncompressed) {
-                   return lib.checkLogRollover(startupEntry,function(){
+               if (list.length <= lib.config.maxUncompressedFileCount) {
+                   return lib.log(startupEntry,function(){
                        console.log({loggingStarted:startupEntry});
                        if (typeof cb==="function") cb();
                    });
@@ -538,7 +553,7 @@ lib.init = function(cb){
                
                
            };
-           console.log({vs:{UncompressedLogFileCOunt:list.length,limit:lib.config.max_log_uncompressed}});
+           console.log({vs:{UncompressedLogFileCOunt:list.length,limit:lib.config.maxUncompressedFileCount}});
       
            compressOldFiles();
 
