@@ -13,6 +13,9 @@ tests will include that all log files created must be valid json, or compressed 
 */
 
 /* explode-require the node-libs we need */
+
+"use strict";
+
 var [ fs, path, zlib ] = "fs,path,zlib".split(",").map(require);
 
 
@@ -82,7 +85,7 @@ lib.compressedLogFileName=function(f) {
 lib.createLogListItemGetter = function(item){
     if (item.compressed) {
         item.get=function(cb){
-            lib.decompressFile(epoch,function(err,epoch,fn,most_recent) {
+            lib.decompressFile(item.epoch,function(err,epoch,fn,most_recent) {
                 if (err) {return cb(err)}
                 fs.stat(fn,function(err,stat){
                     if (err||!stat) {return cb(err|| new Error("fs.stat did not return stats"))}
