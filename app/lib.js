@@ -449,9 +449,12 @@ lib.init = function(cb){
                    });
                }
                
+                debugger;
+                
                 lib.compressFile(list[0].fn,function(err,e,fn){
                     if (err) {
-                        if (typeof cb==="function") cb();
+                        console.log(err);
+                        if (typeof cb==="function") cb(err);
                     }
                     console.log("compressed:"+fn);
                     list.splice(0,1);
