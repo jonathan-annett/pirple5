@@ -191,7 +191,7 @@ lib.extendFile = function (f,nextEntry,cb){
     var buffer = new Buffer(",\n"+JSON.stringify([when,nextEntry]).substr(1));
     fs.stat(fn,function(err,stats){
         if (err||!stats) return cb(err);
-        fs.open(fn,'a+',function(err,fd){
+        fs.open(fn,'r+',function(err,fd){
             if (err||!fd) return cb(err);
             var file_position = stats.size-2;
             fs.write(fd,buffer,/*buffer offset*/0,buffer.length,file_position,function(errWrite){
