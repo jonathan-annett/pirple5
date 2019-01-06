@@ -165,6 +165,17 @@ lib.createLogListItem = function (opt,fn) {
    return result;
 
 };
+
+lib.epoch_sort_recent_first = function(a,b){
+  if (a.epoch > b.epoch) return 1;
+  if (a.epoch < b.epoch) return -1;
+  return 0;
+};
+lib.epoch_sort_recent_last = function(a,b){
+  if (a.epoch > b.epoch) return -1;
+  if (a.epoch < b.epoch) return 1;
+  return 0;
+};
    
 lib.listLogs = function(opt,cb){
     if (typeof opt === 'function') {
@@ -184,11 +195,7 @@ lib.listLogs = function(opt,cb){
         files = files.filter(function(x){
            return x !== null; 
         });
-        files = files.sort(function(a,b){
-            if (a.epoch > b.epoch) return 1;
-            if (a.epoch < b.epoch) return -1;
-            return 0;
-        });
+        files = files.sort(lib.epoch_sort_recent_first);
         
         cb(files);
     });
@@ -368,7 +375,7 @@ lib.decompressFile= function(f,cb){
    
 };
 
-
+lib.all_epochs=[];
 lib.getEntriesCache={};
 lib.getEntriesCache_=[];
 lib.getEntries = function(epoch,cb){
@@ -412,16 +419,81 @@ lib.getEntries = function(epoch,cb){
    });  
 };
 
-lib.getMostRecentLogEntries = function ( count, cb  ) {
-     
+
+// lib.getMostRecentLogEntries will return all entries of the current log file
+lib.getMostRecentLogEntries = function ( cb  ) {
+    var result = lib.currentLogFile ? lib.currentLogFile.entries || []  : [];
+    return (typeof cb ==='function') ? cb(result) : result ;
+};
+// getLogPreviousEntries will return the previous file of log entries
+lib.getLogPreviousEntries = function ( entries, cb  ) {
+    if (typeof entries === 'object' ) {
+        
+        if (entries.length === 0) {
+            cb(new Error("no previous entries"));
+        } else {
+            
+            var ix;
+            
+            if (entries[0].t === lib.currentLogFile.entries.t) {
+                // the caller has passed in the currently active log file
+                ix = lib.all_epochs.length-1;
+            } else {
+                // lookup the log file epoch in the master index
+                ix = lib.all_epochs.indexOf(entries[0].t);
+                if (ix>0) {
+                    // we aren't on the first one, so pick the previous
+                    ix --;
+                } else {
+                    // either on the first one, or the entries aren't in the master index - fail.
+                    if (typeof cb ==='function') {
+                        cb(new Error("no previous entries"));
+                    }
+                    return; 
+                }
+            }
+            
+            return lib.getEntries(lib.all_epochs[ix],cb);
+        }
+    }
+    if (typeof cb ==='function') {
+        cb(new Error("invalid entries array passed into getLogPreviousEntries()"));
+    }
 };
 
-lib.getLogPreviousEntries = function ( entries, count, cb  ) {
+lib.getLogNextEntries = function ( entries, cb  ) {
+    if (typeof entries === 'object' ) {
 
-};
-
-lib.getLogNextEntries = function ( entries, count, cb  ) {
-
+        if (entries.length === 0) {
+            cb(new Error("no next entries"));
+        } else {
+            
+            var ix;
+            
+            if (entries[0].t === lib.currentLogFile.entries.t) {
+                // the caller has passed in the currently active log file
+                cb(new Error("no next entries"));
+            } else {
+                // lookup the log file epoch in the master index
+                ix = lib.all_epochs.indexOf(entries[0].t);
+                if ((ix >=0) && (ix<entries.length-1)) {
+                    // we aren't on the last one, so pick the next
+                    ix ++;
+                } else {
+                    // either on the last one, or the entries aren't in the master index - fail.
+                    if (typeof cb ==='function') {
+                        cb(new Error("no next entries"));
+                    }
+                    return; 
+                }
+            }
+            
+            return lib.getEntries(lib.all_epochs[ix],cb);
+        }
+    }
+    if (typeof cb ==='function') {
+        cb(new Error("invalid entries array passed into getLogPreviousEntries()"));
+    }
 };
 
 lib.currentLogFile = false;
@@ -450,7 +522,7 @@ lib.log = function ( logEntry, cb ) {
             }
             
             lib.currentLogFile  = lib.createLogListItem({getter:true},path.basename(fn));
-            
+            lib.all_epochs.push(lib.currentLogFile.epoch);
             if (typeof logEntry === 'object') {
     
                 lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
@@ -523,14 +595,30 @@ lib.init = function(cb){
        }   
        var startupEntry = { message : "Logging Has Started" };
        
-              
+       // get list of logs (most recent will be at 0)       
        lib.listLogs(function(list){
            
            if (list.length === 0) {
                lib.currentLogFile = undefined;
            } else {
-               lib.currentLogFile  = list[list.length-1];
+               
+               //trash any existing epoch master index
+               if (lib.all_epochs) {
+                  if (lib.all_epochs.length>0) lib.all_epochs.splice(0,lib.all_epochs.length);
+               } else {
+                  lib.all_epochs = [];
+               }
+               
+               // collect all the log file epochs, with most recent last (hence unshift)
+               list.forEach(function(entry){
+                   lib.all_epochs.unshift(entry.epoch);
+               });
+               
+               // assign most recently used log file as the current log file
+               lib.currentLogFile  = list[0];
                lib.createLogListItemGetter(lib.currentLogFile);
+               
+               console.log({all_epochs:lib.all_epochs});
                lib.currentLogFile.get(function(err,entries){
                    if (err) return typeof cb==="function" ? cb(err) : undefined;
                    lib.currentLogFile.entries=entries;
