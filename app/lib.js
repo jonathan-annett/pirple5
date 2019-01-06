@@ -110,7 +110,7 @@ lib.listLogs = function(opt,cb){
                 result = {
                     epoch : epoch,
                     compressed : compressed,
-                    fn : fn
+                    fn : path.join(lib.basedir,fn)
                 };
 
                 if (opt.getter && compressed) {
