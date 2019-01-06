@@ -109,10 +109,27 @@ var printReport = function(failLimit,testLimit) {
     var indentStr = function(str,indent,shiftCount,popCount) {
         shiftCount=shiftCount?shiftCount:0;
         popCount=popCount?popCount:0;
-        var lines = str.split("\n");
-        
-        while (shiftCount-->0) lines.shift();
-        while (popCount-->0) lines.pop();
+        var lines = str.trim().split("\n");
+        if (shiftCount || popCount) {
+            
+            while (shiftCount-->0) lines.shift();
+            while (popCount-->0) lines.pop();
+            
+            var m = lines.reduce(function(m,line){
+                var c=0;
+                for (var i=0;i<line.length;i++){
+                    if (line.charAt(i)===' ') 
+                        c++; 
+                    else 
+                        break;
+                }
+                return c > m ? c : m;
+            },0);
+            
+            lines = lines.map(function (line){
+                return line.substr(m);
+            });
+        }
         
         lines.forEach(function(line){console.log(Array(indent+1).join(" ")+line);});
     };
@@ -181,10 +198,10 @@ var printReport = function(failLimit,testLimit) {
                 stats.errors.forEach(function(failedTestFN){
                     console.log("          Test:       "+failedTestFN.testName);
                     console.log("          Error:");
-                    indentStr(String(failedTestFN.exception),10);
+                    indentStr(String(failedTestFN.exception),16);
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
-                    indentStr(String(failedTestFN.toString()),10,1,1);
+                    indentStr(String(failedTestFN.toString()),16,1,1);
                     console.log(""); 
                 });
             }
