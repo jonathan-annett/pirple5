@@ -1,10 +1,24 @@
 
+var [assert] = [require("assert")];
 
 var _app = module.exports = {};
 
 _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
+
+_app.tests.selfTest = {
+    
+    "always passes" : function (done) {
+        assert.ok(true);
+        done();
+    },
+    
+    "never passes" : function (done) {
+        assert.ok(false);
+        done();
+    },
+} ;
 
 var getTestCount = function() {
    return Object.keys(_app.tests).reduce(function(sum,testSetName){
@@ -206,3 +220,5 @@ _app.run = function(failLimit,testLimit){
     
     printReport(failLimit,testLimit);
 };
+
+_app.run();
