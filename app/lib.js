@@ -25,7 +25,8 @@ lib.config = {
     max_log_size : 1024*1024,
     max_log_entries : 10,
     max_log_hours : 0.1,
-    max_log_uncompressed : 5
+    max_log_uncompressed : 5,
+    max_file_cache : 10,
 };
 
 lib.basedir = path.join(__dirname,'..','.logs');
@@ -309,6 +310,7 @@ lib.compressFile= function(f,cb){
                              });
                             
                          }
+                         return cb (err_after);
                      });
                 });
 
@@ -345,14 +347,82 @@ lib.decompressFile= function(f,cb){
             .on('finish', function () {  
                  fs.stat(after_fn,function(err_after,stat_after){
                      if (!err_after && stat_after && stat_after.mtime) {
-                         return cb (false,epoch,after_fn,stat_after.mtime.getTime());
+                         fs.unlink(before_fn,function(err){
+                         
+                             if (err) return cb(err);
+                             return cb (false,epoch,after_fn,stat_after.mtime.getTime());
+                         
+                         });
                      }
+                     return cb(err_after);
                  });
             });
 
        });
    });      
    
+};
+
+
+lib.getEntriesCache={};
+lib.getEntriesCache_=[];
+lib.getEntries = function(epoch,cb){
+    
+    
+    var res = lib.getEntriesCache[epoch];
+    
+    if (res) {
+        
+        var ix  = lib.getEntriesCache_.indexOf(epoch);
+        if (ix>0) {
+            lib.getEntriesCache_.splice(ix,1);
+            lib.getEntriesCache_.unshift(epoch);
+        }
+        
+        return cb(false,res);
+    }
+    
+   lib.decompressFile(epoch,function(err,epoch,fn){
+       
+       if (err) return cb(err);
+       fs.readFile(fn,function(err,buffer){
+           try {
+               
+               var entries = {};
+               var array = JSON.parse(buffer);
+               for(var i = 0; i < array.length; ) {
+                   var when = array[i++];
+                   var entry = array[i++];
+                   entries[when]=entry;
+               }
+               
+               //cache the data we just read, and 
+               lib.getEntriesCache[epoch]=entries;
+               lib.getEntriesCache_.unshift(epoch);
+               
+               // remove the least used cache entry files if there are too many cached
+               while (lib.getEntriesCache_.length > lib.config.max_file_cache) {
+                   delete lib.getEntriesCache[ lib.getEntriesCache_.pop() ];
+               } 
+               
+               cb(false,entries);
+           } catch (e) {
+               cb(e);
+           }
+       });
+   });  
+};
+
+lib.getMostRecentLogEntries = function ( count, cb  ) {
+     
+};
+
+lib.getLogPreviousEntries = function ( entries, count, cb  ) {
+
+};
+
+lib.getLogNextEntries = function ( entries, count, cb  ) {
+
 };
 
 lib.currentLogFile = false;
@@ -478,6 +548,9 @@ lib.init = function(cb){
         
     });
 };
+
+
+
 
 
 if (process.mainModule===module) lib.init();
