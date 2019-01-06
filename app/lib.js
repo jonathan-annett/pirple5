@@ -23,9 +23,9 @@ var lib = module.exports = {};
 
 lib.config = {
     max_log_size : 1024*1024,
-    max_log_entries : 500,
-    max_log_hours : 5,
-    max_log_uncompressed : 10
+    max_log_entries : 10,
+    max_log_hours : 0.1,
+    max_log_uncompressed : 2
 };
 
 lib.basedir = path.join(__dirname,'..','.logs');
