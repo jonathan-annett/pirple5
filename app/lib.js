@@ -432,7 +432,7 @@ lib.init = function(cb){
        }   
        var startupEntry = { message : "Logging Has Started" };
        
-
+              
        lib.listLogs(function(list){
            
            if (list.length === 0) {
@@ -460,7 +460,8 @@ lib.init = function(cb){
                
                
            };
-           
+           console.log({vs:{UncompressedLogFileCOunt:list.length,limit:lib.config.max_log_uncompressed}});
+      
            compressOldFiles();
 
            
