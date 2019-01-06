@@ -611,7 +611,8 @@ lib.init = function(cb){
                }
                
                // collect all the log file epochs, with most recent last (hence unshift)
-               list.forEach(function(entry){
+               list.forEach(function(entry,ix){
+                   console.log(ix,entry.epoch);
                    lib.all_epochs.unshift(entry.epoch);
                });
                
