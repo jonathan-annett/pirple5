@@ -427,6 +427,7 @@ lib.getLogNextEntries = function ( entries, count, cb  ) {
 lib.currentLogFile = false;
 
 lib.log = function ( logEntry, cb ) { 
+    
     if (typeof logEntry === 'function') {
         cb = logEntry;
         logEntry = undefined;
@@ -473,7 +474,6 @@ lib.log = function ( logEntry, cb ) {
         return newFile();
     }
     
-
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
             
@@ -509,6 +509,8 @@ lib.log = function ( logEntry, cb ) {
             });
 
         });
+    } else {
+        if (typeof cb==="function") return cb(new Error("can't get data from log entry"));   
     }
     
 };
