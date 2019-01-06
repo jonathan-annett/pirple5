@@ -18,6 +18,13 @@ var [ fs, path, zlib ] = "fs,path,zlib".split(",").map(require);
 
 var lib = module.exports = {};
 
+lib.config = {
+    max_log_size : 1024*1024,
+    max_log_entries : 500,
+    max_log_hours : 5,
+    max_log_uncompressed : 10
+};
+
 lib.basedir = path.join(__dirname,'..','.logs');
 
 //lib.logFileName --> a string "path/to/filename/lib-??????.json"
@@ -72,6 +79,87 @@ lib.compressedLogFileName=function(f) {
     return path.join(lib.basedir,"log-"+f.toString(36)+".json.gz");
 };
 
+lib.createLogListItemGetter = function(item){
+    if (item.compressed) {
+        item.get=function(cb){
+            lib.decompressFile(epoch,function(err,epoch,fn,most_recent) {
+                if (err) {return cb(err)}
+                fs.stat(fn,function(err,stat){
+                    if (err||!stat) {return cb(err|| new Error("fs.stat did not return stats"))}
+                    item.uncompressed_size = stat.size;
+                    fs.readFile(fn,function(err,buffer){
+                        if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
+                        
+                        try {
+                            cb(false,JSON.parse(buffer),most_recent);
+                        } catch (e) {
+                            cb(e);
+                        }
+                    });
+                });
+                
+            });
+        };
+    }
+    if (!item.compressed) {
+        item.get=function(cb){
+            fs.stat(item.fn,function(err,stat){
+                if (err||!stat) {return cb(err|| new Error("fs.stat did not return stats"))}
+                item.uncompressed_size = stat.size;
+                fs.readFile(item.fn,function(err,buffer){
+                    if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
+                    try {
+                        cb(false,JSON.parse(buffer),stat.mtime.getTime());
+                    } catch (e) {
+                        cb(e);
+                    }
+                });
+            });
+            
+        };
+    }
+};
+
+lib.createLogListItem = function (opt,fn) {
+
+   var result = null;
+   
+   var epoch = lib.logFileEpoch(fn);
+   var compressed = fn.indexOf(".json.gz")>0;
+   var needed = false;
+   if (opt.all) {
+       needed = true;
+   } else {
+       if (opt.compressed && compressed) needed = true;
+       if (!opt.compressed && !compressed) needed = true;
+   }
+   if (needed && opt.before_epoch){
+       if (epoch >= opt.before_epoch) {
+           needed = false;
+       }
+   }
+   if (needed && opt.after_epoch){
+       if (epoch <= opt.after_epoch) {
+           needed = false;
+       }
+   }
+   if (needed){
+       result = {
+           epoch : epoch,
+           compressed : compressed,
+           fn : path.join(lib.basedir,fn)
+       };
+
+       if ( opt.getter ) {
+           lib.createLogListItemGetter(result);
+       }
+
+   }
+   return result;
+
+};
+   
+       
 lib.listLogs = function(opt,cb){
     if (typeof opt === 'function') {
         cb=opt;
@@ -84,73 +172,9 @@ lib.listLogs = function(opt,cb){
         if (err||!files) return cb(err||new Error("files not returned file fs.readdir"));
         
         files = files.map(function(fn){
-
-            var result = null;
-            
-            var epoch = lib.logFileEpoch(fn);
-            var compressed = fn.indexOf(".json.gz")>0;
-            var needed = false;
-            if (opt.all) {
-                needed = true;
-            } else {
-                if (opt.compressed && compressed) needed = true;
-                if (!opt.compressed && !compressed) needed = true;
-            }
-            if (needed && opt.before_epoch){
-                if (epoch >= opt.before_epoch) {
-                    needed = false;
-                }
-            }
-            if (needed && opt.after_epoch){
-                if (epoch <= opt.after_epoch) {
-                    needed = false;
-                }
-            }
-            if (needed){
-                result = {
-                    epoch : epoch,
-                    compressed : compressed,
-                    fn : path.join(lib.basedir,fn)
-                };
-
-                if (opt.getter && compressed) {
-                    result.get=function(cb){
-                        lib.decompressFile(epoch,function(err,epoch,fn,most_recent) {
-                            if (err) {return cb(err)}
-                            fs.readFile(fn,function(err,buffer){
-                                if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
-                                
-                                try {
-                                    cb(false,JSON.parse(buffer),most_recent);
-                                } catch (e) {
-                                    cb(e);
-                                }
-                            });
-                        });
-                    };
-                }
-                
-                if (opt.getter && !compressed) {
-                    result.get=function(cb){
-                        fs.stat(result.fn,function(err,stat){
-                            if (err||!stat) {return cb(err|| new Error("fs.stat did not return stats"))}
-                            fs.readFile(result.fn,function(err,buffer){
-                                if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
-                                try {
-                                    cb(false,JSON.parse(buffer),stat.mtime.getTime());
-                                } catch (e) {
-                                    cb(e);
-                                }
-                            });
-                        });
-                        
-                    };
-                }
-                
-            }
-            return result;
-
+           return lib.createLogListItem(opt,fn); 
         });
+
         files = files.filter(function(x){
            return x !== null; 
         });
@@ -323,6 +347,78 @@ lib.decompressFile= function(f,cb){
 
 lib.currentLogFile = false;
 
+lib.checkLogRollover = function ( logEntry, cb ) { 
+    if (typeof logEntry === 'function') {
+        cb = logEntry;
+        logEntry = undefined;
+    }
+    var newFile = function () {
+        lib.createFile ({message:"New Log File Created"},function(err,fn){
+            
+            if (err) {
+                return console.log({err:err});
+            }
+            
+            lib.currentLogFile  = lib.createLogListItem({},path.basename(fn));
+            
+            if (typeof logEntry === 'object') {
+    
+                lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
+                    if (err) {
+                        return console.log({err:err});
+                    }
+                    if (typeof cb==="function") cb(undefined,fn,nextEntry);  
+                });
+            
+            } else {
+                if (typeof cb==="function") cb(undefined,fn);   
+            }
+        });
+    };
+    
+    if (typeof lib.currentLogFile === 'undefined') {
+        return newFile();
+    }
+    
+    if (typeof lib.currentLogFile.get !== 'function') {
+        lib.createLogListItemGetter(lib.currentLogFile);
+    }
+    
+    if (typeof lib.currentLogFile.get === 'function') {
+        return lib.currentLogFile.get(function(err,entries){
+            
+            if ( err ||  ! entries ||   (entries.length > lib.config.max_log_entries)  ) {
+                    return newFile();
+             }
+             
+             if (lib.currentLogFile.uncompressed_size > lib.config.max_log_size) {
+                  return newFile();
+             }
+             
+             var msec_per_hour = (1000 * 60 * 60);
+             var age_in_hours = (Date.now()-lib.currentLogFile.epoch) / msec_per_hour;
+             
+             if ( age_in_hours >  lib.config.max_log_hours ) {
+                     return newFile();
+             }
+            
+            lib.extendFile(lib.currentLogFile.fn,logEntry,function(err,fn,nextEntry){
+                
+                if (err) {
+                    console.log({err:err});
+                    return newFile();
+                }
+                
+                console.log({loggingStarted:{fn,nextEntry}});
+                
+                if (typeof cb==="function") return cb();   
+            });
+
+        });
+    }
+    
+};
+
 lib.init = function(cb){
     // ensure the log storeage path exists
     fs.mkdir(lib.basedir,function(err){
@@ -331,40 +427,39 @@ lib.init = function(cb){
        }   
        var startupEntry = { message : "Logging Has Started" };
        
+
        lib.listLogs(function(list){
            if (list.length === 0) {
-               lib.createFile ({message:"New Log File Created"},function(err,fn,firstEntry){
-                   
-                   if (err) {
-                       return console.log({err:err});
-                   }
-                   
-                   lib.currentLogFile  = fn;
-                   console.log({newLogFile:lib.currentLogFile,firstEntry:firstEntry});
-                   
-                   lib.extendFile (fn,startupEntry,function(err,fn,nextEntry){
-                       if (err) {
-                           return console.log({err:err});
-                       }
-                       console.log({loggingStarted:{fn,nextEntry}});
-                   });
-                   
-                   if (typeof cb==="function") cb();   
-               });
+               lib.currentLogFile = undefined;
            } else {
-               lib.currentLogFile  = list[list.length-1].fn;
-               lib.extendFile(lib.currentLogFile,startupEntry,function(err,fn,nextEntry){
-                   if (err) {
-                       return console.log({err:err});
-                   }
-                   console.log({loggingStarted:{fn,nextEntry}});
-               });
+               lib.currentLogFile  = list[list.length-1];
            }
+           
+           var compressOldFiles=function() {
+               
+               if (list.length <= lib.config.max_log_uncompressed) {
+                   return lib.checkLogRollover(startupEntry,function(){
+                       cb();
+                   });
+               }
+               
+                lib.compressFile(list[0].fn,function(err,e,fn){
+                    if (err) {
+                        return cb(err);
+                    }
+                    console.log("compressed:"+fn);
+                    list.splice(0,1);
+                    compressOldFiles();
+                });
+               
+               
+           };
+           
+           compressOldFiles();
+
+           
        });
        
-       
-       
-
         
     });
 };
