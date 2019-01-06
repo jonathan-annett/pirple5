@@ -111,8 +111,8 @@ var printReport = function(failLimit,testLimit) {
         popCount=popCount?popCount:0;
         var lines = str.split("\n");
         
-        while (shiftCount>0) lines.shift();
-        while (popCount>0) lines.pop();
+        while (shiftCount-->0) lines.shift();
+        while (popCount-->0) lines.pop();
         
         lines.forEach(function(line){console.log(Array(indent+1).join(" ")+line);});
     };
