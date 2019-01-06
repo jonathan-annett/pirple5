@@ -167,13 +167,13 @@ lib.createLogListItem = function (opt,fn) {
 };
 
 lib.epoch_sort_recent_first = function(a,b){
-  if (a.epoch > b.epoch) return 1;
-  if (a.epoch < b.epoch) return -1;
+  if (a.epoch > b.epoch) return -1;
+  if (a.epoch < b.epoch) return 1;
   return 0;
 };
 lib.epoch_sort_recent_last = function(a,b){
-  if (a.epoch > b.epoch) return -1;
-  if (a.epoch < b.epoch) return 1;
+  if (a.epoch > b.epoch) return 1;
+  if (a.epoch < b.epoch) return -1;
   return 0;
 };
    
