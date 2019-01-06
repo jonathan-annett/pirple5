@@ -300,7 +300,14 @@ lib.compressFile= function(f,cb){
                 .on('finish', function () {  
                      fs.stat(after_fn,function(err_after,stat_after){
                          if (!err_after && stat_after && stat_after.mtime) {
-                             return cb (false,epoch,after_fn,stat_after.mtime.getTime());
+                             
+                             fs.unlink(before_fn,function(err){
+                                
+                                if (err) return cb(err);
+                                
+                                return cb (false,epoch,after_fn,stat_after.mtime.getTime()); 
+                             });
+                            
                          }
                      });
                 });
