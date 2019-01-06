@@ -529,7 +529,8 @@ lib.init = function(cb){
            } else {
                lib.currentLogFile  = list[list.length-1];
                lib.createLogListItemGetter(lib.currentLogFile);
-               lib.currentLogFile.get(function(entries){
+               lib.currentLogFile.get(function(err,entries){
+                   if (err) return typeof cb==="function" ? cb(err) : undefined;
                    lib.currentLogFile.entries=entries;
                });
            }
