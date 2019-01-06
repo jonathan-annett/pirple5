@@ -448,7 +448,8 @@ lib.log = function ( logEntry, cb ) {
                 delete lib.currentLogFile;
             }
             
-            lib.currentLogFile  = lib.createLogListItem({},path.basename(fn));
+            lib.currentLogFile  = lib.createLogListItem({getter:true},path.basename(fn));
+            
             if (typeof logEntry === 'object') {
     
                 lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
@@ -472,10 +473,7 @@ lib.log = function ( logEntry, cb ) {
         return newFile();
     }
     
-    if (typeof lib.currentLogFile.get !== 'function') {
-        lib.createLogListItemGetter(lib.currentLogFile);
-    }
-    
+
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
             
@@ -530,6 +528,10 @@ lib.init = function(cb){
                lib.currentLogFile = undefined;
            } else {
                lib.currentLogFile  = list[list.length-1];
+               lib.createLogListItemGetter(lib.currentLogFile);
+               lib.currentLogFile.get(function(entries){
+                   lib.currentLogFile.entries=entries;
+               });
            }
            
            var compressOldFiles=function() {
