@@ -549,11 +549,12 @@ lib.log = function ( logEntry, cb ) {
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
             
-            console.log({LogFileEntriesCount:entries.length});
+           
             if ( err ||  ! entries ||   (entries.length > lib.config.maxLogEntriesPerFile)  ) {
                     return newFile();
              }
              
+             console.log({LogFileEntriesCount:entries.length});
              console.log({LogFileSize:lib.currentLogFile.uncompressed_size});
              if (lib.currentLogFile.uncompressed_size > lib.config.maxLogSizeBytes) {
                   return newFile();
