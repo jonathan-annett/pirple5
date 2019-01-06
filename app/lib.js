@@ -235,21 +235,21 @@ lib.init = function(cb){
     fs.mkdir(lib.basedir,function(err){
        if (!err) {
            console.log("created "+lib.basedir);
+       }   
+       var startupEntry = { message : "Logging Has Started" };
+       
+       lib.createFile (startupEntry,function(err,fn,entry){
            
-           var startupEntry = { message : "Logging Has Started" };
+           if (err) {
+               return console.log({err:err});
+           }
            
-           lib.createFile (startupEntry,function(err,fn,entry){
-               
-               if (err) {
-                   return console.log({err:err});
-               }
-               
-               lib.currentLogFile  = fn;
-               console.log({currentLogFile:lib.currentLogFile});
-               cb();   
-           });
-           
-       } 
+           lib.currentLogFile  = fn;
+           console.log({currentLogFile:lib.currentLogFile});
+           cb();   
+       });
+       
+
         
     });
 };
