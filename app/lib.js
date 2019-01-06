@@ -72,6 +72,98 @@ lib.compressedLogFileName=function(f) {
     return path.join(lib.basedir,"log-"+f.toString(36)+".json.gz");
 };
 
+lib.listLogs = function(opt,cb){
+    if (typeof opt === 'function') {
+        cb=opt;
+        opt={};
+    }   
+    opt=opt||{};
+    
+    fs.readdir(lib.basedir,function(err,files){
+        
+        if (err||!files) return cb(err||new Error("files not returned file fs.readdir"));
+        
+        files = files.map(function(fn){
+
+            var result = null;
+            
+            var epoch = lib.logFileEpoch(fn);
+            var compressed = fn.indexOf(".json.gz")>0;
+            var needed = false;
+            if (opt.all) {
+                needed = true;
+            } else {
+                if (opt.compressed && compressed) needed = true;
+                if (!opt.compressed && !compressed) needed = true;
+            }
+            if (needed && opt.before_epoch){
+                if (epoch >= opt.before_epoch) {
+                    needed = false;
+                }
+            }
+            if (needed && opt.after_epoch){
+                if (epoch <= opt.after_epoch) {
+                    needed = false;
+                }
+            }
+            if (needed){
+                result = {
+                    epoch : epoch,
+                    compressed : compressed,
+                    fn : fn
+                };
+
+                if (opt.getter && compressed) {
+                    result.get=function(cb){
+                        lib.decompressFile(epoch,function(err,epoch,fn,most_recent) {
+                            if (err) {return cb(err)}
+                            fs.readFile(fn,function(err,buffer){
+                                if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
+                                
+                                try {
+                                    cb(false,JSON.parse(buffer),most_recent);
+                                } catch (e) {
+                                    cb(e);
+                                }
+                            });
+                        });
+                    };
+                }
+                
+                if (opt.getter && !compressed) {
+                    result.get=function(cb){
+                        fs.stat(result.fn,function(err,stat){
+                            if (err||!stat) {return cb(err|| new Error("fs.stat did not return stats"))}
+                            fs.readFile(result.fn,function(err,buffer){
+                                if (err||!buffer) {return cb(err|| new Error("fs.readFile did not return buffer"))}
+                                try {
+                                    cb(false,JSON.parse(buffer),stat.mtime.getTime());
+                                } catch (e) {
+                                    cb(e);
+                                }
+                            });
+                        });
+                        
+                    };
+                }
+                
+            }
+            return result;
+
+        });
+        files = files.filter(function(x){
+           return x !== null; 
+        });
+        files = files.sort(function(a,b){
+            if (a.epoch > b.epoch) return 1;
+            if (a.epoch < b.epoch) return -1;
+            return 0;
+        });
+        
+        cb(files);
+    });
+};
+
 lib.createFile = function (firstEntry,cb){
     var when = Date.now();
     var fn = lib.logFileName(when);
@@ -88,6 +180,7 @@ lib.createFile = function (firstEntry,cb){
     return fn;
 };
 
+//lib.extendFile --> cb(false,fn,nextEntry)
 lib.extendFile = function (f,nextEntry,cb){
     var when = Date.now();
     var fn = lib.logFileName(f);
@@ -238,16 +331,38 @@ lib.init = function(cb){
        }   
        var startupEntry = { message : "Logging Has Started" };
        
-       lib.createFile (startupEntry,function(err,fn,entry){
-           
-           if (err) {
-               return console.log({err:err});
+       lib.listLogs(function(list){
+           if (list.length === 0) {
+               lib.createFile ({message:"New Log File Created"},function(err,fn,firstEntry){
+                   
+                   if (err) {
+                       return console.log({err:err});
+                   }
+                   
+                   lib.currentLogFile  = fn;
+                   console.log({newLogFile:lib.currentLogFile,firstEntry:firstEntry});
+                   
+                   lib.extendFile (fn,startupEntry,function(err,fn,nextEntry){
+                       if (err) {
+                           return console.log({err:err});
+                       }
+                       console.log({loggingStarted:{fn,nextEntry}});
+                   });
+                   
+                   if (typeof cb==="function") cb();   
+               });
+           } else {
+               lib.currentLogFile  = list[list.length-1].fn;
+               lib.extendFile(lib.currentLogFile,startupEntry,function(err,fn,nextEntry){
+                   if (err) {
+                       return console.log({err:err});
+                   }
+                   console.log({loggingStarted:{fn,nextEntry}});
+               });
            }
-           
-           lib.currentLogFile  = fn;
-           console.log({currentLogFile:lib.currentLogFile});
-           cb();   
        });
+       
+       
        
 
         
