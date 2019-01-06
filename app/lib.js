@@ -439,13 +439,13 @@ lib.init = function(cb){
                
                if (list.length <= lib.config.max_log_uncompressed) {
                    return lib.checkLogRollover(startupEntry,function(){
-                       cb();
+                       if (typeof cb==="function") cb();
                    });
                }
                
                 lib.compressFile(list[0].fn,function(err,e,fn){
                     if (err) {
-                        return cb(err);
+                        if (typeof cb==="function") cb();
                     }
                     console.log("compressed:"+fn);
                     list.splice(0,1);
