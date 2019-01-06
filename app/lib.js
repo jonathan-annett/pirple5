@@ -433,26 +433,20 @@ lib.getLogPreviousEntries = function ( entries, cb  ) {
             cb(new Error("no previous entries"));
         } else {
             
-            var ix;
-            
-            if (entries[0].t === lib.currentLogFile.entries.t) {
-                // the caller has passed in the currently active log file
-                ix = lib.all_epochs.length-1;
+ 
+            // lookup the log file epoch in the master index
+            var ix = lib.all_epochs.indexOf(entries[0].t);
+            if (ix>0) {
+                // we aren't on the first one, so pick the previous
+                ix --;
             } else {
-                // lookup the log file epoch in the master index
-                ix = lib.all_epochs.indexOf(entries[0].t);
-                if (ix>0) {
-                    // we aren't on the first one, so pick the previous
-                    ix --;
-                } else {
-                    // either on the first one, or the entries aren't in the master index - fail.
-                    if (typeof cb ==='function') {
-                        cb(new Error("no previous entries"));
-                    }
-                    return; 
+                // either on the first one, or the entries aren't in the master index - fail.
+                if (typeof cb ==='function') {
+                    cb(new Error("no previous entries"));
                 }
+                return; 
             }
-            
+       
             return lib.getEntries(lib.all_epochs[ix],cb);
         }
     }
@@ -468,24 +462,19 @@ lib.getLogNextEntries = function ( entries, cb  ) {
             cb(new Error("no next entries"));
         } else {
             
-            var ix;
+       
             
-            if (entries[0].t === lib.currentLogFile.entries.t) {
-                // the caller has passed in the currently active log file
-                cb(new Error("no next entries"));
+            // lookup the log file epoch in the master index
+            var ix = lib.all_epochs.indexOf(entries[0].t);
+            if ((ix >=0) && (ix<entries.length-1)) {
+                // we aren't on the last one, so pick the next
+                ix ++;
             } else {
-                // lookup the log file epoch in the master index
-                ix = lib.all_epochs.indexOf(entries[0].t);
-                if ((ix >=0) && (ix<entries.length-1)) {
-                    // we aren't on the last one, so pick the next
-                    ix ++;
-                } else {
-                    // either on the last one, or the entries aren't in the master index - fail.
-                    if (typeof cb ==='function') {
-                        cb(new Error("no next entries"));
-                    }
-                    return; 
+                // either on the last one, or the entries aren't in the master index - fail.
+                if (typeof cb ==='function') {
+                    cb(new Error("no next entries"));
                 }
+                return; 
             }
             
             return lib.getEntries(lib.all_epochs[ix],cb);
