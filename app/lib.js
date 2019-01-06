@@ -619,7 +619,7 @@ lib.init = function(cb){
                lib.currentLogFile  = list[0];
                lib.createLogListItemGetter(lib.currentLogFile);
                
-               console.log({all_epochs:lib.all_epochs});
+               console.log({all_epochs:lib.all_epochs,current :lib.currentLogFile.epoch });
                lib.currentLogFile.get(function(err,entries){
                    if (err) return typeof cb==="function" ? cb(err) : undefined;
                    lib.currentLogFile.entries=entries;
