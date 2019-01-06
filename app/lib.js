@@ -389,11 +389,12 @@ lib.checkLogRollover = function ( logEntry, cb ) {
     
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
-            
+            console.log({LogFileEntriesCount:entries.length});
             if ( err ||  ! entries ||   (entries.length > lib.config.max_log_entries)  ) {
                     return newFile();
              }
              
+             console.log({LogFileSize:lib.currentLogFile.uncompressed_size});
              if (lib.currentLogFile.uncompressed_size > lib.config.max_log_size) {
                   return newFile();
              }
@@ -401,6 +402,7 @@ lib.checkLogRollover = function ( logEntry, cb ) {
              var msec_per_hour = (1000 * 60 * 60);
              var age_in_hours = (Date.now()-lib.currentLogFile.epoch) / msec_per_hour;
              
+             console.log({vs:{LogFileHours:age_in_hours,limit:lib.config.max_log_hours}});
              if ( age_in_hours >  lib.config.max_log_hours ) {
                      return newFile();
              }
@@ -432,6 +434,7 @@ lib.init = function(cb){
        
 
        lib.listLogs(function(list){
+           
            if (list.length === 0) {
                lib.currentLogFile = undefined;
            } else {
