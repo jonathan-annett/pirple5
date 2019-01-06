@@ -193,7 +193,8 @@ lib.extendFile = function (f,nextEntry,cb){
         if (err||!stats) return cb(err);
         fs.open(fn,'a+',function(err,fd){
             if (err||!fd) return cb(err);
-            fs.write(fd,buffer,/*buffer offset*/0,buffer.length,/*file offset*/stats.size-2,function(errWrite){
+            var file_position = stats.size-2;
+            fs.write(fd,buffer,/*buffer offset*/0,buffer.length,file_position,function(errWrite){
                 fs.close(fd,function(errClose){
                    if (errWrite) {
                        return cb(errWrite);
