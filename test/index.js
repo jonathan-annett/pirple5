@@ -26,7 +26,7 @@ _app.colors.reserved = _app.colors.cyan;
 _app.colors.string = _app.colors.red;
 
 var javascript = {
-    reserved : "abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
+    reserved : "done.assert.abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
     properties : "hasOwnProperty.Infinity.isFinite.isNaN.isPrototypeOf.length.Math.NaN.name.Number.Object.prototype.String.toString.undefined.valueOf".split("."),
 };
 
@@ -69,7 +69,13 @@ javascript.colorize = function (src){
                                                        if (i>0) tokens.push('\n');
                                                        token.split(':').forEach(function(token,i){
                                                            if (i>0) tokens.push(':');
-                                                           tokens.push (token);
+                                                           token.split(')').forEach(function(token,i){
+                                                               if (i>0) tokens.push('(');
+                                                               token.split(')').forEach(function(token,i){
+                                                                   if (i>0) tokens.push(')');
+                                                                   tokens.push (token);
+                                                               });
+                                                           });
                                                        });
                                                    });
                                                });
@@ -104,6 +110,8 @@ javascript.colorize = function (src){
            return token;
        } else {
             switch (token) {
+                   case "(":
+                   case ")":
                    case ";":
                    case ":":
                    case ".":
