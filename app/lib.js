@@ -458,23 +458,30 @@ lib.getAllEntries = function (reverse,cb) {
         reverse = false;
     }
     
-    lib.listLogs ({all:true,getter:true},function(logs){
-        var delta = reverse ? 1 : -1;
-        var start = reverse ? 0 : logs.length-1;
-        var endLoop = reverse ? function (i) { return i >= logs.length} : function (i) {return i<0;};
-        
-        var loop = function (i) {
-            if (endLoop(i)) {
-                return;
-            } else {
-                lib.getEntries(logs[i].epoch,function(err,entries){
-                    cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries ,endLoop(i+delta));
-                    loop(i+delta);
-                });
-            }
-        };
-        loop(start);
-    });
+    if (typeof cb==='function') {
+        lib.listLogs ({all:true,getter:true},function(logs){
+            var delta = reverse ? 1 : -1;
+            var start = reverse ? 0 : logs.length-1;
+            var endLoop = reverse ? function (i) { return i >= logs.length} : function (i) {return i<0;};
+            
+            var loop = function (i) {
+                if (endLoop(i)) {
+                    return;
+                } else {
+                    lib.getEntries(logs[i].epoch,function(err,entries){
+                        if (err) return cb(err);
+                        
+                        cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries ,endLoop(i+delta));
+                        
+                        loop(i+delta);
+                        
+                    });
+                }
+            };
+            loop(start);
+        });
+    }
+   
 };
 
 
@@ -1203,6 +1210,7 @@ lib.tests = {
         assert.doesNotThrow(function(){
             var count = 0;
             lib.getAllEntries(function(err,entries,isLast){
+                
                 count ++;   
                 
                 if (isLast) {
