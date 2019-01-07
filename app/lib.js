@@ -1145,7 +1145,7 @@ lib.tests = {
         var JSs = nextEntries.map(function(nextEntry){return JSON.stringify(nextEntry)});
         lib.createFile(function(err,f){
             assert.equal(err,false);
-            lib.extendFile(f,nextEntries,function(err,fn,entries){
+            lib.arrayExtendFile(f,nextEntries,function(err,fn,entries){
                 assert.equal(err,false);
                 assert.equal(typeof fn,'string');
                 assert.equal(typeof entries,'object');
