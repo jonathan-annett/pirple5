@@ -179,165 +179,6 @@ javascript.colorize = function (src){
 };
 
 
-
-var getTestCount = function() {
-   return Object.keys(_app.tests).reduce(function(sum,testSetName){
-       return sum + Object.keys(_app.tests[testSetName]).length;
-   },0);  
-};
-
-var onTestPass = function(testSet,testSetName,testFN,done) {
-    testFN.state="passed";
-    _app.stats.count  ++;
-    _app.stats.passes ++;
-    _app.setStats[testSetName].count  ++;
-    _app.setStats[testSetName].passes ++;
-    done();
-};
-
-var onTestFail = function(testSet,testSetName,testFN,exception,done) {
-    testFN.state="failed";
-    testFN.exception=exception;
-    _app.stats.count    ++;
-    _app.stats.errors.push (testFN);
-    
-    _app.setStats[testSetName].count    ++;
-    _app.setStats[testSetName].errors.push (testFN);
-    done();
-};
-
-var runTest=function(testSet,testSetName,testName,done){
-    
-    if ( typeof testSet==='object' && 
-         typeof testSetName==='string' && 
-         typeof testName==='string' && 
-         typeof done==='function' ) {
-             
-        var testFN = testSet[testName];
-        testFN.testName = testName;
-        testFN.state = "running";
-        // if a test runs away on us and calls done() more than once, 
-        // we need to ignore extra calls, so wwe use a repeatKill flag to detect this
-        var repeatKill=false;
-        
-        // if a  test does not complete after 10 seconds,it can indicate a bug)
-        // so we start a timeout before each test, and nix it when the test completes or fails
-        var doneCompleted,
-            msg_prefix = _app.colors.yellow+"Warning:"+testName+ _app.colors.magenta+ "\n Test is still running after "+_app.colors.red,
-            msg_suffix = _app.colors.magenta+" seconds."+_app.colors.normal,
-            
-            timeoutChecker = function(){
-                 var elapsed = Date.now()-testFN.started;
-                 if ( elapsed < _app.timeout) {
-                     console.log(msg_prefix+String(Math.round(elapsed/1000))+msg_suffix);
-                     return (doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_every));
-                 }
-                 doneCompleted=false;
-                 repeatKill = true;
-                 var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
-                 console.log(_app.colors.magenta+testName+"\n"+_app.colors.red+message+_app.colors.normal);
-                 testFN.finished = Date.now();
-                 onTestFail(testSet,testSetName,testFN,
-                     new Error(message),
-                     done);
-             };
-        doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_after);
-        
-        
-        var 
-        global_trap,
-        err_callback = function (exception) {
-            
-            if (doneCompleted) {
-                clearTimeout(doneCompleted);
-                doneCompleted=false;
-            }
-            
-            if (repeatKill) {
-                // an exception after done() was called is not necessarily
-                console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
-                console.dir({
-                    "Test Set"  : testSetName,
-                    "Test Name" : testName,
-                    "Error"     : exception
-                },{colors:true});
-                return;
-            }
-            
-            onTestFail(testSet,testSetName,testFN,exception,done);
-        };
-        
-        global_trap = function (exception) {
-                testFN.finished = Date.now();
-                process.removeListener('uncaughtException',global_trap);
-                err_callback(exception);
-        };
-        
-        process.on('uncaughtException',global_trap);
-        
-        try {
-
-            testFN.started = Date.now();
-            testFN(function(){
-                var stamp = Date.now();
-                
-                if (doneCompleted) {
-                    clearTimeout(doneCompleted);
-                    doneCompleted=false;
-                }
-                
-                if (repeatKill) {
-                    // if a test runs away on us and calls done more than once, 
-                    // we need to ignore extra calls
-                    return;
-                }
-                testFN.finished = stamp;
-                repeatKill=true;
-                
-                process.removeListener('uncaughtException',global_trap);
-                onTestPass(testSet,testSetName,testFN,done);
-                
-            });
-        } catch (exception) {
-            testFN.finished = Date.now();
-            process.removeListener('uncaughtException',global_trap);
-            err_callback(exception);
-        }
-        
-    } else {
-        
-        throw new Error("runTest(testSet,testSetName,testName,done) called with bad arguments");
-        
-    }
-};
-
-var clearTestSetStats = function(testSetName){
-    var testSet = _app.tests[testSetName];
-    _app.setStats[testSetName] = {
-       count    : 0,
-       passes   : 0,
-       errors   : []
-    };
-    Object.keys(testSet).forEach(function(testName){
-        var testFN = testSet[testName];
-        testFN.state="not run";
-        delete testFN.exception;
-        delete testFN.started;
-        delete testFN.finished;
-    });
-}; 
-
-var clearTestStats = function () {
-    var testSetNames = Object.keys(_app.tests);
-    _app.setStats = {};
-    testSetNames.forEach(clearTestSetStats);
-    _app.stats = {
-        count    : 0,
-        passes   : 0,
-        errors   : []
-    };
-};
-
 var printReport = function(failLimit,testLimit) {
     var hr = new Array(process.stdout.columns).join("-");
     var testSetNames = Object.keys(_app.tests);
@@ -497,6 +338,176 @@ var printReport = function(failLimit,testLimit) {
     console.log(hr);
 };
 
+var getTestCount = function() {
+   return Object.keys(_app.tests).reduce(function(sum,testSetName){
+       return sum + Object.keys(_app.tests[testSetName]).length;
+   },0);  
+};
+
+
+var clearTestSetStats = function(testSetName){
+    var testSet = _app.tests[testSetName];
+    _app.setStats[testSetName] = {
+       count    : 0,
+       passes   : 0,
+       errors   : []
+    };
+    Object.keys(testSet).forEach(function(testName){
+        var testFN = testSet[testName];
+        testFN.state="not run";
+        delete testFN.exception;
+        delete testFN.started;
+        delete testFN.finished;
+    });
+}; 
+
+var clearTestStats = function () {
+    var testSetNames = Object.keys(_app.tests);
+    _app.setStats = {};
+    testSetNames.forEach(clearTestSetStats);
+    _app.stats = {
+        count    : 0,
+        passes   : 0,
+        errors   : []
+    };
+};
+
+var onTestPass = function(testSet,testSetName,testFN,done) {
+    testFN.state="passed";
+    _app.stats.count  ++;
+    _app.stats.passes ++;
+    _app.setStats[testSetName].count  ++;
+    _app.setStats[testSetName].passes ++;
+    _app.setStats[testSetName].finished = testFN.finished;
+    console.log( _app.colors.yellow + testFN.testName +
+                 _app.colors.green +" PASS "+
+                 _app.colors.blue + "("+testFN.finished-testFN.started+" msec)");
+    done();
+};
+
+var onTestFail = function(testSet,testSetName,testFN,exception,done) {
+    testFN.state="failed";
+    testFN.exception=exception;
+    _app.stats.count    ++;
+    _app.stats.errors.push (testFN);
+    
+    _app.setStats[testSetName].count    ++;
+    _app.setStats[testSetName].errors.push (testFN);
+    _app.setStats[testSetName].finished = testFN.finished;
+    console.log( _app.colors.yellow + testFN.testName +
+                 _app.colors.red +" FAIL "+
+                 _app.colors.blue + "("+testFN.finished-testFN.started+" msec)");
+    done();
+};
+
+var runTest=function(testSet,testSetName,testName,done){
+    
+    if ( typeof testSet==='object' && 
+         typeof testSetName==='string' && 
+         typeof testName==='string' && 
+         typeof done==='function' ) {
+             
+        var testFN = testSet[testName];
+        testFN.testName = testName;
+        testFN.state = "running";
+        // if a test runs away on us and calls done() more than once, 
+        // we need to ignore extra calls, so wwe use a repeatKill flag to detect this
+        var repeatKill=false;
+        
+        // if a  test does not complete after 10 seconds,it can indicate a bug)
+        // so we start a timeout before each test, and nix it when the test completes or fails
+        var doneCompleted,
+            msg_prefix = _app.colors.yellow+"Warning:"+testName+ _app.colors.magenta+ "\n Test is still running after "+_app.colors.red,
+            msg_suffix = _app.colors.magenta+" seconds."+_app.colors.normal,
+            
+            timeoutChecker = function(){
+                 var elapsed = Date.now()-testFN.started;
+                 if ( elapsed < _app.timeout) {
+                     console.log(msg_prefix+String(Math.round(elapsed/1000))+msg_suffix);
+                     return (doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_every));
+                 }
+                 doneCompleted=false;
+                 repeatKill = true;
+                 var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
+                 console.log(_app.colors.magenta+testName+"\n"+_app.colors.red+message+_app.colors.normal);
+                 testFN.finished = Date.now();
+                 onTestFail(testSet,testSetName,testFN,
+                     new Error(message),
+                     done);
+             };
+        doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_after);
+        
+        
+        var 
+        global_trap,
+        err_callback = function (exception) {
+            
+            if (doneCompleted) {
+                clearTimeout(doneCompleted);
+                doneCompleted=false;
+            }
+            
+            if (repeatKill) {
+                // an exception after done() was called is not necessarily
+                console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
+                console.dir({
+                    "Test Set"  : testSetName,
+                    "Test Name" : testName,
+                    "Error"     : exception
+                },{colors:true});
+                return;
+            }
+            
+            onTestFail(testSet,testSetName,testFN,exception,done);
+        };
+        
+        global_trap = function (exception) {
+                testFN.finished = Date.now();
+                process.removeListener('uncaughtException',global_trap);
+                err_callback(exception);
+        };
+        
+        process.on('uncaughtException',global_trap);
+        
+        try {
+
+            testFN.started = Date.now();
+            testFN(function(){
+                var stamp = Date.now();
+                
+                if (doneCompleted) {
+                    clearTimeout(doneCompleted);
+                    doneCompleted=false;
+                }
+                
+                if (repeatKill) {
+                    // if a test runs away on us and calls done more than once, 
+                    // we need to ignore extra calls
+                    return;
+                }
+                testFN.finished = stamp;
+                repeatKill=true;
+                
+                process.removeListener('uncaughtException',global_trap);
+                onTestPass(testSet,testSetName,testFN,done);
+                
+            });
+            
+        } catch (exception) {
+            
+            testFN.finished = Date.now();
+            process.removeListener('uncaughtException',global_trap);
+            err_callback(exception);
+            
+        }
+        
+    } else {
+        
+        throw new Error("runTest(testSet,testSetName,testName,done) called with bad arguments");
+        
+    }
+};
+
 
 _app.run = function(failLimit,testLimit,cb){
     
@@ -506,13 +517,12 @@ _app.run = function(failLimit,testLimit,cb){
     var testSetNames = Object.keys(_app.tests);
     
     clearTestStats();
-    var lastSetFinish = _app.stats.started = Date.now() ;
+    _app.stats.finished = _app.stats.started = Date.now() ;
     
     // runTestSet will be called once for each element index of testSetName keys
     var runTestSet = function (i) {
         
         if (i>= testSetNames.length) {
-            _app.stats.finished = lastSetFinish; 
             printReport(failLimit,testLimit);
             if (typeof cb==='function') {
                 cb();
@@ -522,7 +532,6 @@ _app.run = function(failLimit,testLimit,cb){
             testSet = _app.tests[testSetName];
             
             var testNames  = Object.keys(testSet);
-            var lastFinish = _app.setStats[testSetName].started = Date.now();
 
             // runTestX will be called once for each element index of testSet keys
             var runTestX = function (x) {
@@ -533,8 +542,15 @@ _app.run = function(failLimit,testLimit,cb){
                         
                     // asyncronously perform the test
                     runTest(testSet,testSetName,testName, function (){
-                        lastFinish = testSet[testName].finished;
+                        var statsx = _app.setStats[testSetName]
+                        _app.stats.finished =statsx.finished ; 
                         if ( ( _app.stats.errors.length <= failLimit) && ( _app.stats.count <= testLimit) ) {
+                            
+                            console.log( _app.colors.yellow + testSetName +
+                            ( statsx.errors.length===0 ? ( statsx.success > 0 ? _app.colors.green +" PASS " : " NO TESTS " ) : _app.colors.red +" FAIL")+
+                            _app.colors.blue + "("+statsx.finished-statsx.started+" msec)");
+           
+                       
                             runTestX(++x);
                         } else {
                             runTestSet(testSetNames.length);
@@ -544,8 +560,8 @@ _app.run = function(failLimit,testLimit,cb){
             };
             
             runTestX(0);
-
-            _app.setStats[testSetName].finished = lastSetFinish = lastFinish; 
+            
+           
             
         }
         
