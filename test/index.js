@@ -381,7 +381,7 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     _app.setStats[testSetName].finished = testFN.finished;
     console.log( _app.colors.yellow + testFN.testName +
                  _app.colors.green +" PASS "+
-                 _app.colors.blue + "("+testFN.finished-testFN.started+" msec)");
+                 _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
     done();
 };
 
@@ -396,7 +396,7 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].finished = testFN.finished;
     console.log( _app.colors.yellow + testFN.testName +
                  _app.colors.red +" FAIL "+
-                 _app.colors.blue + "("+testFN.finished-testFN.started+" msec)");
+                 _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
     done();
 };
 
@@ -550,7 +550,7 @@ _app.run = function(failLimit,testLimit,cb){
                             console.log( 
                                 _app.colors.yellow + testSetName +
                                   ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
-                                  _app.colors.blue + "("+statsx.finished-statsx.started+" msec)");
+                                  _app.colors.blue + "("+String(statsx.finished-statsx.started)+" msec)");
            
                        
                             runTestX(++x);
