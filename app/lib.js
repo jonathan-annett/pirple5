@@ -1168,18 +1168,19 @@ lib.tests = {
         
         var nextEntry =  {random : Math.random()};
         var JS = JSON.stringify(nextEntry);
-        var f = lib.currentLogFile.epoch;
-        
-         lib.extendFile(f,nextEntry,function(err,fn,entry){
-            assert.equal(err,false);
-            assert.equal(typeof fn,'string');
-            assert.equal(typeof entry,'object');
-            assert.equal(JSON.stringify(entry),JS);
-            assert.equal(typeof fs.statSync(fn),'object');
-            var data = JSON.parse(fs.readFileSync(fn));
-            assert.equal(typeof data,'object');
-            assert.equal(JSON.stringify(data.pop().e),JS);
-            done();
+        lib.createFile(function(err,f){
+             assert.equal(err,false);
+             lib.extendFile(f,nextEntry,function(err,fn,entry){
+                assert.equal(err,false);
+                assert.equal(typeof fn,'string');
+                assert.equal(typeof entry,'object');
+                assert.equal(JSON.stringify(entry),JS);
+                assert.equal(typeof fs.statSync(fn),'object');
+                var data = JSON.parse(fs.readFileSync(fn));
+                assert.equal(typeof data,'object');
+                assert.equal(JSON.stringify(data.pop().e),JS);
+                done();
+            });
         });
     },
     
@@ -1187,12 +1188,13 @@ lib.tests = {
     function (done) {
         
         var nextEntry =  {random : Math.random()};
-        var f = lib.createFile();
-        
-        //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
-        assert.doesNotThrow(function(){
-            lib.extendFile(f,nextEntry);
-            done();
+        lib.createFile(function(err,f){
+            assert.equal(err,false);
+            assert.doesNotThrow(function(){
+                lib.extendFile(f,nextEntry);
+                done();
+            });
+            
         });
         
     },
