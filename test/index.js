@@ -374,6 +374,22 @@ var clearTestStats = function () {
     };
 };
 
+
+var right_pad=function(text,pad,color) {
+   return _app.colors[color]+(new Array(pad+1).join(" ")+text).substr(0-pad)+_app.colors.normal;
+};
+
+var left_pad=function(text,pad,color) {
+   return _app.colors[color]+(text +new Array(pad+1).join(" ")).substr(pad)+_app.colors.normal;
+};
+
+
+var msec_pad=function(testFN,pad,color) {
+   return right_pad(String(testFN.finished-testFN.started),pad,color);
+}
+
+
+
 var onTestPass = function(testSet,testSetName,testFN,done) {
     testFN.state="passed";
     _app.stats.count  ++;
@@ -381,10 +397,10 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     _app.setStats[testSetName].count  ++;
     _app.setStats[testSetName].passes ++;
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( _app.colors.normal + "[" + testSetName + " # "+testFN.index+"]"+
-                 _app.colors.yellow + testFN.testName +
+    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",10,"normal")+
                  _app.colors.green +" PASS "+
-                 _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
+                 msec_pad(testFN,6,"blue") +
+                 left_pad(testFN.testName,process.stdout.columns-24));
     done();
 };
 
@@ -397,10 +413,10 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].count    ++;
     _app.setStats[testSetName].errors.push (testFN);
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( _app.colors.normal + "[" + testSetName + " # "+testFN.index+"]"+
-                 _app.colors.yellow + testFN.testName +
-                 _app.colors.red +" FAIL "+
-                 _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
+    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",10,"normal")+
+                _app.colors.green +" FAIL "+
+                msec_pad(testFN,6,"blue") +
+                left_pad(testFN.testName,process.stdout.columns-24));
     done();
 };
 
