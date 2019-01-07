@@ -606,7 +606,6 @@ _app.setStats = {};
 
 
 var sourceCodeTestNeeded = function(filename) {
-    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(__filename),filename,"index.js");  
     console.log(_app.colors.blue + "checking "+filename+_app.colors.normal);
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
@@ -623,7 +622,7 @@ var sourceCodeTestNeeded = function(filename) {
 },
 selfTestNeeded = sourceCodeTestNeeded(__filename),
 runTestsIfNeeded = function (testName,rel_path) {
-    if (sourceCodeTestNeeded(testName,rel_path)) {
+    if (sourceCodeTestNeeded(path.join(path.dirname(__filename),rel_path,"index.js"))) {
         _app.tests[testName] =  require(rel_path).tests;
     }
 };
