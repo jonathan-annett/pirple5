@@ -143,6 +143,15 @@ lib.createLogListItem = function (opt,fn) {
 
    var result = null;
    
+   switch (typeof opt) {
+       case 'string' :
+         fn  = opt;
+         opt = {};
+         break;
+       case 'undefined' : 
+         opt = {};  
+   }
+   
    var epoch = lib.logFileEpoch(fn);
    var compressed = fn.indexOf(".json.gz")>0;
    var needed = false;
