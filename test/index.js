@@ -69,7 +69,7 @@ javascript.colorize = function (src){
                                                        if (i>0) tokens.push('\n');
                                                        token.split(':').forEach(function(token,i){
                                                            if (i>0) tokens.push(':');
-                                                           token.split(')').forEach(function(token,i){
+                                                           token.split('(').forEach(function(token,i){
                                                                if (i>0) tokens.push('(');
                                                                token.split(')').forEach(function(token,i){
                                                                    if (i>0) tokens.push(')');
