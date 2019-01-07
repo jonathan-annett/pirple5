@@ -1123,7 +1123,7 @@ lib.tests = {
     function (done) {
         
         var nextEntry =  {random : Math.random()};
-        var f = lib.currentLogFile.epoch;
+        var f = lib.createFile();
         
         //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
         assert.doesNotThrow(function(){
@@ -1143,7 +1143,7 @@ lib.tests = {
         }
         
         var JSs = nextEntries.map(function(nextEntry){return JSON.stringify(nextEntry)});
-        var f = lib.currentLogFile.epoch;
+        var f = lib.createFile();
         
          lib.extendFile(f,nextEntries,function(err,fn,entries){
             assert.equal(err,false);
