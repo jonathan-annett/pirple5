@@ -196,6 +196,37 @@ var runTest=function(testSet,testSetName,testName,done){
                 done);
         },_app.timeout);
         
+        
+        var 
+        global_trap,
+        err_callback = function (exception) {
+            
+            if (doneCompleted) {
+                clearTimeout(doneCompleted);
+                doneCompleted=false;
+            }
+            
+            if (repeatKill) {
+                // an exception after done() was called is not necessarily
+                console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
+                console.dir({
+                    "Test Set"  : testSetName,
+                    "Test Name" : testName,
+                    "Error"     : exception
+                },{colors:true});
+                return;
+            }
+            process.removeEventListener('uncaughtException',global_trap);
+            onTestFail(testSet,testSetName,testFN,exception,done);
+        };
+        
+        global_trap = function (exception) {
+                testFN.finished = Date.now();
+                err_callback(exception);
+        };
+        
+        process.on('uncaughtException',global_trap);
+        
         try {
 
             testFN.started = Date.now();
@@ -215,30 +246,13 @@ var runTest=function(testSet,testSetName,testName,done){
                 testFN.finished = stamp;
                 repeatKill=true;
                 
+                process.removeEventListener('uncaughtException',global_trap);
                 onTestPass(testSet,testSetName,testFN,done);
                 
             });
         } catch (exception) {
-            
             testFN.finished = Date.now();
-            
-            if (doneCompleted) {
-                clearTimeout(doneCompleted);
-                doneCompleted=false;
-            }
-            
-            if (repeatKill) {
-                // an exception after done() was called is not necessarily
-                console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
-                console.dir({
-                    "Test Set"  : testSetName,
-                    "Test Name" : testName,
-                    "Error"     : exception
-                },{colors:true});
-                return;
-            }
-            
-            onTestFail(testSet,testSetName,testFN,exception,done);
+            err_callback(exception);
         }
         
     } else {
@@ -439,6 +453,8 @@ _app.run = function(failLimit,testLimit,cb){
         }
         
     };
+    
+
     runTestSet(0);
 
     
