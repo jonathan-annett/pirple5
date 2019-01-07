@@ -54,8 +54,9 @@ javascript.colors = {
    
 };
 
+// a rough and ready javascript colorizer
+// does not cope with comments, but does handle strings.
 javascript.colorize = function (src){
-   
    var tokens = [];
    
    // tokenize the javascript source
@@ -162,6 +163,8 @@ javascript.colorize = function (src){
    
    return result.join("");
 };
+
+
 
 var getTestCount = function() {
    return Object.keys(_app.tests).reduce(function(sum,testSetName){
@@ -309,7 +312,7 @@ var clearTestStats = function () {
 };
 
 var printReport = function(failLimit,testLimit) {
-    var hr = Array(process.stdout.columns).join("-");
+    var hr = new Array(process.stdout.columns).join("-");
     var testSetNames = Object.keys(_app.tests);
     
     var indentStr = function(str,indent,shiftCount,popCount) {
@@ -337,7 +340,7 @@ var printReport = function(failLimit,testLimit) {
             });
         }
         
-        lines.forEach(function(line){console.log(Array(indent+1).join(" ")+line);});
+        lines.forEach(function(line){console.log(new Array(indent+1).join(" ")+line);});
     };
     
     var collateStats = function (stats) {
@@ -426,6 +429,7 @@ var printReport = function(failLimit,testLimit) {
     
     console.log(hr);
 };
+
 
 _app.run = function(failLimit,testLimit,cb){
     

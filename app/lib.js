@@ -1099,6 +1099,28 @@ lib.tests = {
           },1000);
     },
     
+    "lib.extendFile(f,nextEntry,cb) calls cb with a valid filename pointing to valid JSON file that contains nextEntry ": 
+    function (done) {
+        
+        var nextEntry =  {random : Math.random()};
+        var JS = JSON.stringify(nextEntry);
+        var f = lib.currentLogFile.epoch;
+        
+        //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
+        lib.extendFile(f,nextEntry,function(err,fn,entry){
+            assert.equal(err,false);
+            assert.equal(typeof fn,'string');
+            assert.equal(typeof entry,'object');
+            assert.equal(JSON.stringify(entry),JS);
+            assert.equal(typeof fs.statSync(fn),'object');
+            var data = JSON.parse(fs.readFileSync(fn));
+            assert.equal(typeof data,'object');
+            assert.equal(JSON.stringify(data.pop().e),JS);
+            done();
+        });
+    },
+    
+    
     
 };
 
