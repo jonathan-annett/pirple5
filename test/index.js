@@ -226,7 +226,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 err_callback(exception);
         };
         
-        //process.on('uncaughtException',global_trap);
+        process.on('uncaughtException',global_trap);
         
         try {
 
@@ -247,13 +247,13 @@ var runTest=function(testSet,testSetName,testName,done){
                 testFN.finished = stamp;
                 repeatKill=true;
                 
-                //process.removeListener('uncaughtException',global_trap);
+                process.removeListener('uncaughtException',global_trap);
                 onTestPass(testSet,testSetName,testFN,done);
                 
             });
         } catch (exception) {
             testFN.finished = Date.now();
-            //process.removeListener('uncaughtException',global_trap);
+            process.removeListener('uncaughtException',global_trap);
             err_callback(exception);
         }
         
