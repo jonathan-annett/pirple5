@@ -1212,7 +1212,7 @@ lib.tests = {
            
         });
     },
-    /*
+     
     
     "lib.getAllEntries(true,cb) does not throw"  : 
     function (done) {
@@ -1244,8 +1244,7 @@ lib.tests = {
         });
     },
     
-    */
-    
+   
 
     
 };
