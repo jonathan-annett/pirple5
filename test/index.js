@@ -216,7 +216,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 },{colors:true});
                 return;
             }
-            process.removeEventListener('uncaughtException',global_trap);
+            process.removeListener('uncaughtException',global_trap);
             onTestFail(testSet,testSetName,testFN,exception,done);
         };
         
@@ -246,7 +246,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 testFN.finished = stamp;
                 repeatKill=true;
                 
-                process.removeEventListener('uncaughtException',global_trap);
+                process.removeListener('uncaughtException',global_trap);
                 onTestPass(testSet,testSetName,testFN,done);
                 
             });
