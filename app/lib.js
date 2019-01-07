@@ -181,7 +181,7 @@ lib.createLogListItem = function (opt,fn) {
        result = {
            epoch : epoch,
            compressed : compressed,
-           fn : path.join(lib.basedir,lib.basename(fn))
+           fn : path.join(lib.basedir,path.basename(fn))
        };
 
        if ( opt.getter ) {
