@@ -355,6 +355,38 @@ var printReport = function(failLimit,testLimit) {
         } 
     };
     
+    var isNodeJsMap=[ 'assert',
+        'buffer',
+        'child_process',
+        'cluster',
+        'crypto',
+        'dgram',
+        'dns',
+        'domain',
+        'events',
+        'fs',
+        'http',
+        'https',
+        'net',
+        'os',
+        'path',
+        'punycode',
+        'querystring',
+        'readline',
+        'stream',
+        'string_decoder',
+        'tls',
+        'tty',
+        'url',
+        'util',
+        'vm',
+        'zlib' ].map(function(mod){return "("+mod+".js:"}),
+        isNodeJs= function (line) {
+            return isNodeJsMap.some(function(mod){
+                return line.indexOf(mod) >= 0;
+            });
+        };
+    
     
     collateStats(_app.stats);
     
@@ -409,7 +441,7 @@ var printReport = function(failLimit,testLimit) {
                     console.log("          Error:");
                     indentStr(String(failedTestFN.exception),16);
                     var line="?",lines = failedTestFN.exception.stack.split("\n");
-                    while (lines && line && line.trim().substr(0,3)!=="at ") {
+                    while (lines && line && (line.trim().substr(0,3)!=="at ")  && isNodeJs(line) ) {
                         line = lines.shift();
                     }
                     if (line)
