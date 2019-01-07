@@ -171,6 +171,7 @@ lib.epoch_sort_recent_first = function(a,b){
   if (a.epoch < b.epoch) return 1;
   return 0;
 };
+
 lib.epoch_sort_recent_last = function(a,b){
   if (a.epoch > b.epoch) return 1;
   if (a.epoch < b.epoch) return -1;
@@ -663,8 +664,36 @@ lib.tests = {
         var stat = fs.statSync(lib.basedir);
         assert.ok(stat && stat.isDirectory());
         done();
-    },    
+    },  
     
+    
+    "lib.logFileName(1223) returns a string": function (done) {
+        var value = lib.logFileName(1223);
+        assert.equal(typeof value,"string");
+        done();
+    },  
+    
+    
+    "lib.logFileName(new Date()) returns a string": function (done) {
+        var value = lib.logFileName(new Date());
+        assert.equal(typeof value,"string");
+        done();
+    },
+    
+    
+    
+    "lib.logFileName(previousFilename) returns same filename": function (done) {
+        var previousFilename = lib.logFileName(new Date());
+        var value = lib.logFileName(previousFilename);
+        assert.equal(value,previousFilename);
+        done();
+    },
+    
+    "lib.logFileName(new Date()) returns a filename under basedir": function (done) {
+        var value = lib.logFileName(new Date());
+        assert.equal(path.dirname(value),lib.basedir);
+        done();
+    },
     
 };
 
