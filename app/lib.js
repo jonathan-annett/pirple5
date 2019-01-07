@@ -655,16 +655,14 @@ lib.tests = {
 
     "lib.init() does not throw" : function (done) {
         assert.doesNotThrow(function(){
-            
             lib.init(done);
-            
         },TypeError);    
     },
     
     "lib.basedir created ok after lib.init()" : function (done) {
         var stat = fs.statSync(lib.basedir);
         assert.ok(stat && stat.isDirectory());
-        done();
+        //done();
     },    
     
     
