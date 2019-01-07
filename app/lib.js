@@ -1158,7 +1158,7 @@ lib.tests = {
             var data = JSON.parse(fs.readFileSync(fn));
             assert.equal(typeof data,'object');
             
-            var ix2=(data.length-count)+1;
+            var ix2=(data.length-count)-1;
             JSs.forEach(function(JS) {
                assert.equal(JSON.stringify(data[ix2++].e),JS);   
             });
