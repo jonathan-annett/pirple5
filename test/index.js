@@ -435,7 +435,7 @@ var printReport = function(failLimit,testLimit) {
         var stats = _app.setStats[testSetName];
         console.log("         "+testSetName+" :  ");
         console.log("          Passes:    "  + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.yellow )  + stats.passes + _app.colors.normal );
-        console.log("          Failures:   " + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.red ) + stats.errors.length) + _app.colors.normal;
+        console.log("          Failures:   " + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.red ) + stats.errors.length + _app.colors.normal);
         console.log("          Run Time:   " + String(stats.duration /1000) );
         console.log("");
         
