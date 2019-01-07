@@ -423,7 +423,7 @@ _app.run = function(failLimit,testLimit,cb){
                     // asyncronously perform the test
                     runTest(testSet,testSetName,testName, function (){
                         lastFinish = testSet[testName].finished;
-                        if ( ( _app.stats.failures <= failLimit) && ( _app.stats.count <= testLimit) ) {
+                        if ( ( _app.stats.errors.length <= failLimit) && ( _app.stats.count <= testLimit) ) {
                             runTestX(++x);
                         } else {
                             runTestSet(testSetNames.length);
