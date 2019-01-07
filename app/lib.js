@@ -1347,7 +1347,8 @@ lib.tests = {
             assert.equal(err,false);
             assert.equal(typeof fn,'string');
             assert.equal(typeof fs.statSync(fn),'object');
-            assert.equal(typeof JSON.parse(fs.readFileSync(fn)),'object');
+            assert.equal(typeof JSON.parse(fs.readFileSync(fn)),'object'); 
+            done();
         });
     },
     

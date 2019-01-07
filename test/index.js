@@ -208,15 +208,25 @@ var runTest=function(testSet,testSetName,testName,done){
         
         // if a  test does not complete after 10 seconds,it can indicate a bug)
         // so we start a timeout before each test, and nix it when the test completes or fails
-        var doneCompleted = setTimeout(function(){
-            doneCompleted=false;
-            repeatKill = true;
-            var message = "Test did not complete after "+String(_app.timeout/1000)+" seconds";
-            console.log(testName+"\n"+message);
-            onTestFail(testSet,testSetName,testFN,
-                new Error(message),
-                done);
-        },_app.timeout);
+        var doneCompleted,
+            msg_prefix = _app.colors.yellowtestName+ " still running ("+_app.colors.red,
+            msg_suffix = _app.colors.yellow+" seconds)"+_app.colors.normal,
+            
+            timeoutChecker = function(){
+                 var elapsed = Date.now()-testFN.started;
+                 if ( elapsed < _app.timeout) {
+                     console.log(msg_prefix+String(elapsed/1000)+msg_suffix);
+                     return (doneCompleted = setTimeout(timeoutChecker,1000));
+                 }
+                 doneCompleted=false;
+                 repeatKill = true;
+                 var message = "Test did not complete after "+String(_app.timeout/1000)+" seconds";
+                 console.log(testName+"\n"+message);
+                 onTestFail(testSet,testSetName,testFN,
+                     new Error(message),
+                     done);
+             };
+        doneCompleted = setTimeout(timeoutChecker,5000);
         
         
         var 
@@ -515,6 +525,7 @@ _app.run = function(failLimit,testLimit,cb){
                     });
                 }
             };
+            
             runTestX(0);
 
             _app.setStats[testSetName].finished = lastFinish; 
