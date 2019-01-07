@@ -236,6 +236,7 @@ var runTest=function(testSet,testSetName,testName,done){
                  repeatKill = true;
                  var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
                  console.log(_app.colors.magenta+testName+"\n"+_app.colors.red+message+_app.colors.normal);
+                 testFN.finished = Date.now();
                  onTestFail(testSet,testSetName,testFN,
                      new Error(message),
                      done);
