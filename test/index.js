@@ -23,6 +23,7 @@ _app.colors.property  = _app.colors.magenta;
 _app.colors.error   = _app.colors.red;
 _app.colors.keyword = _app.colors.green;
 _app.colors.reserved = _app.colors.cyan;
+_app.colors.string = _app.colors.red;
 
 var javascript = {
     reserved : "abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
@@ -40,48 +41,48 @@ javascript.colorize = function (src){
    var tokens = [];
    
    // tokenize the javascript source
-   src.split(" ").forEach(function(token){
-       token.split(".").forEach(function(token){
-           token.split(",").forEach(function(token){
-               token.split(";").forEach(function(token){
-                   token.split("'").forEach(function(token){
-                       token.split('"').forEach(function(token){
-                           token.split('+').forEach(function(token){
-                               token.split('-').forEach(function(token){
-                                   token.split('*').forEach(function(token){
-                                       token.split('/').forEach(function(token){
-                                           token.split('\\').forEach(function(token){
-                                               token.split('\t').forEach(function(token){
-                                                   token.split('\n').forEach(function(token){
-                                                       token.split(':').forEach(function(token){
+   src.split(" ").forEach(function(token,i){
+       if (i>0) tokens.push(' ');
+       token.split(".").forEach(function(token,i){
+           if (i>0) tokens.push('.');
+           token.split(",").forEach(function(token,i){
+               if (i>0) tokens.push(',');
+               token.split(";").forEach(function(token,i){
+                   if (i>0) tokens.push(';');
+                   token.split("'").forEach(function(token,i){
+                       if (i>0) tokens.push("'");
+                       token.split('"').forEach(function(token,i){
+                           if (i>0) tokens.push('"');
+                           token.split('+').forEach(function(token,i){
+                               if (i>0) tokens.push('+');
+                               token.split('-').forEach(function(token,i){
+                                   if (i>0) tokens.push('-');
+                                   token.split('*').forEach(function(token,i){
+                                       if (i>0) tokens.push('*');
+                                       token.split('/').forEach(function(token,i){
+                                           if (i>0) tokens.push('/');
+                                           token.split('\\').forEach(function(token,i){
+                                               if (i>0) tokens.push('\\');
+                                               token.split('\t').forEach(function(token,i){
+                                                   if (i>0) tokens.push('\t');
+                                                   token.split('\n').forEach(function(token,i){
+                                                       if (i>0) tokens.push('\n');
+                                                       token.split(':').forEach(function(token,i){
+                                                           if (i>0) tokens.push(':');
                                                            tokens.push (token);
-                                                           tokens.push(':');
                                                        });
-                                                       tokens.push('\n');
                                                    });
-                                                   tokens.push('\t');
                                                });
-                                               tokens.push('\\');
                                            });
-                                           tokens.push('/');
                                        });
-                                       tokens.push('*');
                                    });
-                                   tokens.push('-');
                                });
-                               tokens.push('+');
                            });
-                           tokens.push('"');
                        });
-                       tokens.push("'");
                    });
-                   tokens.push(";");
                });    
-               tokens.push(",");
            });
-           tokens.push(".");
        });
-       tokens.push(" ");
    });
    
    var instr=false,escaped=false;
