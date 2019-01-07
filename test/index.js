@@ -606,7 +606,7 @@ _app.setStats = {};
 
 
 var sourceCodeTestNeeded = function(filename) {
-    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(filename),filename+"index.js");  
+    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(filename),filename,"index.js");  
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
     sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
@@ -616,6 +616,8 @@ var sourceCodeTestNeeded = function(filename) {
         testNeeded = ( sha256sum !== selfTestStats.sha256sum);
     }
     if (testNeeded) {
+        console.log(_app.colors.red+ testStatsFn+" has changed, wil run tests"+_app.colors.normal);
+
         fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
     }
     return testNeeded;
