@@ -1206,13 +1206,13 @@ lib.tests = {
                 count ++;   
                 
                 if (isLast) {
-                    done;
+                    done();
                 }
             });
            
         });
     },
-    
+    /*
     
     "lib.getAllEntries(true,cb) does not throw"  : 
     function (done) {
@@ -1244,7 +1244,7 @@ lib.tests = {
         });
     },
     
-    
+    */
     
 
     
