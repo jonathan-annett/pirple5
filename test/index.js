@@ -570,6 +570,7 @@ _app.run = function(failLimit,testLimit,cb){
             // runTestX will be called once for each element index of testSet keys
             var runTestX = function (x) {
                 if (x>= testNames.length) {
+                    _app.setStats[testSetName].started =  testSet[ testNames[0] ].started;
                     runTestSet(++i);
                 } else {
                     var testName = testNames[x];
@@ -582,7 +583,7 @@ _app.run = function(failLimit,testLimit,cb){
                             
                             runTestX(++x);
                         } else {
-                            statsx.started =  testSet[ testNames[0] ].started;
+                          
                             console.log( 
                             _app.colors.yellow + testSetName +
                               ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
