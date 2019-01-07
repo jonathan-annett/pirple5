@@ -557,6 +557,9 @@ _app.tests.selfTest = {
         assert.ok(false);
         done();
     },
+    "never completes" : function (done) {
+
+    },
 } ;
 */
 _app.tests.lib = require("../app/lib").tests;
