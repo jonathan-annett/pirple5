@@ -617,10 +617,10 @@ var sourceCodeTestNeeded = function(filename) {
     
     var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
     if (testNeeded) {
-        console.log(_app.colors.red + sha256sum +" "+dispname+" changed since last test"+_app.colors.normal);
+        console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
         fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
     } else {
-        console.log(_app.colors.green + sha256sum +" "+dispname+" unchanged since last test"+_app.colors.normal);
+        console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
     }
     return testNeeded;
 },
