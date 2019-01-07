@@ -606,7 +606,7 @@ _app.setStats = {};
 
 
 var sourceCodeTestNeeded = function(filename) {
-    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(filename),filename,"index.js");  
+    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(__filename),filename,"index.js");  
     console.log(_app.colors.blue + "checking "+filename+_app.colors.normal);
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
