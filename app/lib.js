@@ -389,17 +389,20 @@ lib.decompressFile= function(f,cb){
             .pipe(gunzip) // uncompresses via gunzip
             .pipe(out)  // write decompressed data to after_fn
             .on('finish', function () {  
-                 fs.stat(after_fn,function(err_after,stat_after){
-                     if (!err_after && stat_after && stat_after.mtime) {
-                         return fs.unlink(before_fn,function(err){
-                         
-                             if (err) return cb(err);
-                             return cb (false,epoch,after_fn,stat_after.mtime.getTime());
-                         
-                         });
-                     }
-                     return cb(err_after);
-                 });
+                 setTimeout(function(){
+                     fs.stat(after_fn,function(err_after,stat_after){
+                         if (!err_after && stat_after && stat_after.mtime) {
+                             return fs.unlink(before_fn,function(err){
+                             
+                                 if (err) return cb(err);
+                                 return cb (false,epoch,after_fn,stat_after.mtime.getTime());
+                             
+                             });
+                         }
+                         return cb(err_after);
+                     });
+                 },100);
+                 
             });
 
        });
