@@ -178,7 +178,7 @@ lib.createLogListItem = function (opt,fn) {
 
 };
 
-   
+//lib.listLogs(opt,cb) --> cb([file1,file2]) 
 lib.listLogs = function(opt,cb){
     if (typeof opt === 'function') {
         cb=opt;
@@ -790,7 +790,7 @@ lib.tests = {
         assert.equal(value.substr(0-suffix.length),suffix);
         done();
     },
-    
+
     "lib.epoch_sort_recent_first works as expected" : function (done) {
         var to_element = function(x){return {epoch:x}};
         var input = [ 1,3,8,2,1024,7].map(to_element);
@@ -809,7 +809,127 @@ lib.tests = {
         var value = JSON.stringify(input.sort(lib.epoch_sort_recent_last));
         assert.equal(value,expected_JSON);
         done();
-    }
+    },
+    
+    "lib.createLogListItem(fn) does not throw" : function (done) {
+       assert.doesNotThrow(function(){
+            var fn = lib.logFileName(Date.now());
+            lib.createLogListItem (fn);
+            done();
+       },TypeError);    
+    },
+    
+    "lib.createLogListItem({},fn) creates an object" : function (done) {
+        var fn = lib.logFileName(Date.now());
+        var value = lib.createLogListItem ({},fn);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        done();
+    },
+    
+    "lib.createLogListItem({},fn_gz) does not create an object" : function (done) {
+        var fn_gz = lib.compressedLogFileName(Date.now());
+        var value = lib.createLogListItem ({},fn_gz);
+        assert.equal(typeof value,'object');
+        assert.equal(value,null);
+        done();
+    },
+    
+    "lib.createLogListItem({compressed:true},fn_gz) creates an object" : function (done) {
+        var fn_gz = lib.compressedLogFileName(Date.now());
+        var value = lib.createLogListItem ({compressed:true},fn_gz);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        done();
+    },
+    
+    "lib.createLogListItem({compressed:true},fn) does not create an object" : function (done) {
+        var fn = lib.logFileName(Date.now());
+        var value = lib.createLogListItem ({},fn);
+        assert.equal(typeof value,'object');
+        assert.equal(value,null);
+        done();
+    },
+    
+    "lib.createLogListItem({all:true},fn_gz) creates an object" : function (done) {
+        var fn_gz = lib.compressedLogFileName(Date.now());
+        var value = lib.createLogListItem ({compressed:true},fn_gz);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        done();
+    },
+    
+    
+    "lib.createLogListItem({},fn) creates an object without .get() method" : function (done) {
+        var fn = lib.logFileName(Date.now());
+        var value = lib.createLogListItem ({},fn);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        assert.equal(typeof value.get,'undefined');
+        done();
+    },
+    
+    "lib.createLogListItem({getter:true},fn) creates an object with .get() method" : function (done) {
+        var fn = lib.logFileName(Date.now());
+        var value = lib.createLogListItem ({getter:true},fn);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        assert.equal(typeof value.get,'function');
+        done();
+    },
+    
+    "lib.createLogListItem({all:true,getter:true},fn) creates an object with .get() method" : function (done) {
+        var fn = lib.logFileName(Date.now());
+        var value = lib.createLogListItem ({all:true,getter:true},fn);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        assert.equal(typeof value.get,'function');
+        done();
+    },
+    
+    "lib.createLogListItem({compressed:true,getter:true},fn_gz) creates an object with .get() method" : function (done) {
+        var fn_gz = lib.compressedLogFileName(Date.now());
+        var value = lib.createLogListItem ({compressed:true,getter:true},fn_gz);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        assert.equal(typeof value.get,'function');
+        done();
+    },
+    
+    "lib.createLogListItem({all:true,getter:true},fn_gz) creates an object with .get() method" : function (done) {
+        var fn_gz = lib.compressedLogFileName(Date.now());
+        var value = lib.createLogListItem ({all:true,getter:true},fn_gz);
+        assert.equal(typeof value,'object');
+        assert.notEqual(value,null);
+        assert.equal(typeof value.get,'function');
+        done();
+    },
+    
+    "lib.listLogs({},cb) returns an array" : function (done) {
+        lib.listLogs({},function(files){
+            assert.equal(typeof files,"object");
+            assert.equal(files.constructor,Array);
+        });
+        done();
+    },
+    
+    
+    "lib.listLogs({},cb) returns an array of valid log file objects" : function (done) {
+        lib.listLogs({},function(files){
+            files.forEach(function(file){
+                assert.equal(typeof file,"object");
+                assert.equal(typeof file.epoch,'number');
+                assert.equal(typeof file.fn,'string');
+                assert.equal(typeof fs.statSync(file.fn),'object');
+                var fileData = fs.readFileSync(file.fn);
+                assert.equal(typeof fileData,'object');
+                var fileJSON = JSON.parse(fileData);
+                assert.equal(typeof fileJSON,'object');
+                assert.equal(fileJSON.constructor,Array);
+            });
+        });
+        done();
+    },
     
 };
 
