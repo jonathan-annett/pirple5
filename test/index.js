@@ -380,7 +380,7 @@ var right_pad=function(text,pad,color) {
 };
 
 var left_pad=function(text,pad,color) {
-   return _app.colors[color]+(text +new Array(pad+1).join(" ")).substr(pad)+_app.colors.normal;
+   return _app.colors[color]+(text +new Array(pad+1).join(" ")).substr(0,pad)+_app.colors.normal;
 };
 
 
