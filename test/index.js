@@ -448,7 +448,7 @@ _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
 
-_app.tests.selfTest = {
+//_app.tests.selfTest = {
     
     "always passes" : function (done) {
         assert.ok(true);
