@@ -123,9 +123,9 @@ javascript.colorize = function (src){
                    if (ix>=0) {
                        return javascript.colors.reserved[ix];
                    }
-                   ix = javascript.keyword.indexOf(token);
+                   ix = javascript.properties.indexOf(token);
                    if (ix>=0) {
-                       return javascript.colors.keyword[ix];
+                       return javascript.colors.properties[ix];
                    }
                    return token;
             }
