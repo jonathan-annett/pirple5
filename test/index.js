@@ -11,7 +11,8 @@
   - exceptions that happen out of the scope of the test function are trapped and logged
   - the source code of the test function is printed in the error message for failed tests
   - the best guess at source code file line and number is made by walking the error.stack array in any messages
-  
+  - test tesults are saved to a json file, along with a sha256sum of the source file
+    files that have not changed since passing all tests are not tested again
 
 */
 

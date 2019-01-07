@@ -2,7 +2,6 @@
 
 this is a log file manager.
 
-
 */
 
 /*

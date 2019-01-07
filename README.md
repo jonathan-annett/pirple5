@@ -1,22 +1,25 @@
 # pirple5
 Homework Assignment #5
 
-This is the fifth of several homework assignments you'll receive in this course. In order to receive your certificate of completion (at the end of this course) you must complete all the assignments and receive a passing grade. 
+This is an [assignment](assignment.md) for an online course.
 
-How to Turn It In:
+**the test framework itself [`test/index/js`](test/index.js)**  
 
-1. Create a public github repo for this assignment. 
+I opted to go somewhat further than the assignment asked, mainly as I wanted to ensure end to end testing of asynchronous functions can be tested in a serial fashion.
 
-2. Create a new post in the Facebook Group  and note "Homework Assignment #5" at the top.
+It became clear to me when watching the video tutorial that whilst the rudimentary approach demonstrated is fine for small functions that return a value or don't need the results of earlier tests, any serious tests that take some time to complete would be running simultaeously with others in the test queue. 
 
-3. In that thread, discuss what you have built, and include the link to your Github repo. 
+Intelligent exception trapping in deffered callbacks would not possible either.
 
-The Assignment:
+If mutiple async functions simultaneously is really what you are trying to test, it would be better to make that a part of the test function itself - by coding a `function test(done){}` which deliberately fires off mutiple async commands and waits for them to complete before calling done.
 
-Create a new empty repository with a /test folder, and an /app folder.
 
-Inside of the app folder, create a library (lib.js) and fill it with simple functions. These can serve any purpose you wish, such as generating a random number, or checking whether or not a string is a palindrome. Really, any kind of functions will do.
+**the sample [`app/lib.js`](app/test.js)**  
 
-Inside the /test folder, create a simple test runner, and then write tests for the functions in your lib.js file. You should try to test that they return (or callback) the correct value when passed valid parameters, and that they return a predictable value (and don't crash) when passed invalid parameters.
+Again, I went far further than a few simple functions. my main motivation here was the realization that in my previous 4 assignments I had not implemented any serious logging mechanism, mainly as the assignment specs had never mandated one. I'd been intending to write a logging module the moment an assignment asked for one. 
 
-This is open ended, and can take whatever form you wish.
+As so I decided here to make my **test case** a logging framework, as I figured I'd really need to thorougly test that framework anyway. 
+
+As I worked on both files, they both got better.
+
+
