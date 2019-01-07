@@ -658,6 +658,7 @@ lib.tests = {
         assert.doesNotThrow(function(){
             lib.init(function (err){
                 assert.equal(err,false);
+                done();
             });
         },TypeError);    
     },
@@ -696,6 +697,99 @@ lib.tests = {
         assert.equal(path.dirname(value),lib.basedir);
         done();
     },
+    
+    "lib.logFileName(new Date()) returns a .json filename": function (done) {
+        var value = lib.logFileName(new Date());
+        assert.equal(path.extname(value),".json");
+        done();
+    },
+    
+    "lib.logFileEpoch(1223) returns a number": function (done) {
+        var value = lib.logFileEpoch(1223);
+        assert.equal(typeof value,"number");
+        done();
+    },  
+    
+    "lib.logFileEpoch(1223) returns 1223": function (done) {
+        var value = lib.logFileEpoch(1223);
+        assert.equal(value,1223);
+        done();
+    }, 
+    
+    "lib.logFileEpoch(new Date()) returns a number": function (done) {
+        var value = lib.logFileEpoch(new Date());
+        assert.equal(typeof value,"number");
+        done();
+    },  
+    
+    
+    "lib.logFileEpoch(aDate) returns aDate.getTime()": function (done) {
+        var aDate = new Date();
+        var value = lib.logFileEpoch(aDate);
+        assert.equal(value,aDate.getTime());
+        done();
+    }, 
+    
+    "lib.logFileEpoch(aDate.getTime()) returns aDate.getTime()": function (done) {
+        var aDate = new Date();
+        var value = lib.logFileEpoch(aDate.getTime());
+        assert.equal(value,aDate.getTime());
+        done();
+    },  
+    
+    
+    "lib.logFileEpoch(previousFilename) returns a number": function (done) {
+        var previousFilename = lib.logFileName(new Date());
+        var value = lib.logFileEpoch(previousFilename);
+        assert.equal(typeof value,"number");
+        done();
+    },
+    
+    
+    "lib.logFileEpoch(previousFilename) returns epoch of previousFilename": function (done) {
+        var epoch = Date.now();
+        var previousFilename = lib.logFileName(epoch);
+        var value = lib.logFileEpoch(previousFilename);
+        assert.equal(value,epoch);
+        done();
+    },
+    
+    
+    "lib.compressedL`ogFileName(1223) returns a string": function (done) {
+        var value = lib.compressedLogFileName(1223);
+        assert.equal(typeof value,"string");
+        done();
+    },  
+    
+    
+    "lib.compressedLogFileName(new Date()) returns a string": function (done) {
+        var value = lib.compressedLogFileName(new Date());
+        assert.equal(typeof value,"string");
+        done();
+    },
+    
+    
+    
+    "lib.compressedLogFileName(previousFilename) returns same filename": function (done) {
+        var previousFilename = lib.compressedLogFileName(new Date());
+        var value = lib.compressedLogFileName(previousFilename);
+        assert.equal(value,previousFilename);
+        done();
+    },
+    
+    "lib.compressedLogFileName(new Date()) returns a filename under basedir": function (done) {
+        var value = lib.compressedLogFileName(new Date());
+        assert.equal(path.dirname(value),lib.basedir);
+        done();
+    },
+    
+    "lib.compressedLogFileName(new Date()) returns a .json.gz filename": function (done) {
+        var value = lib.compressedLogFileName(new Date());
+        var suffix = ".json.gz";
+        assert.equal(value.substr(0-suffix.length),suffix);
+        done();
+    },
+    
     
 };
 
