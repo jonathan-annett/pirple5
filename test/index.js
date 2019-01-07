@@ -651,7 +651,6 @@ _app.run = function(failLimit,testLimit,cb){
 
 
 if (selfTestNeeded) {
-    console.log("NOTE - selfTest intentionally has multiple fail messages, to test fail reports)");
     _app.tests.selfTest = {
         
         "always passes" : function (done) {
@@ -670,5 +669,13 @@ if (selfTestNeeded) {
 }
  
 runTestsIfNeeded ("lib","../app/lib");
+
+if (selfTestNeeded) {
+    console.log( "NOTE - selfTest intentionally has multiple fail messages,\n"+
+                 "in order to properly test fail reports\n"+
+                 "This Test only runs if you have changed "+path.basename(__filename)
+                 );
+}
+
 
 _app.run();
