@@ -507,7 +507,7 @@ var runTest=function(testSet,testSetName,testName,done){
             }
             
             if (repeatKill) {
-                // an exception after done() was called is not necessarily
+                // an exception after done() was called 
                 console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
                 console.dir({
                     "Test Set"  : testSetName,
