@@ -671,8 +671,8 @@ if (selfTestNeeded) {
 
 (function (testPathsJSON) {
     var testPaths = JSON.parse(testPathsJSON);
-    console.log("Test configuration:");
-    console.dir({"test/tests.json":testPaths},{colors:true});
+    console.log("Test configuration: (in test/tests.json)");
+    console.dir(testPaths,{colors:true});
     Object.keys(testPaths).forEach(function(testSetName){
         runTestsIfNeeded (testSetName,testPaths[testSetName]);
     });
