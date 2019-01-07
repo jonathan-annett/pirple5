@@ -1106,8 +1106,7 @@ lib.tests = {
         var JS = JSON.stringify(nextEntry);
         var f = lib.currentLogFile.epoch;
         
-        //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
-        lib.extendFile(f,nextEntry,function(err,fn,entry){
+         lib.extendFile(f,nextEntry,function(err,fn,entry){
             assert.equal(err,false);
             assert.equal(typeof fn,'string');
             assert.equal(typeof entry,'object');
@@ -1120,7 +1119,18 @@ lib.tests = {
         });
     },
     
-    
+    "lib.extendFile(f,nextEntry) does not throw ": 
+    function (done) {
+        
+        var nextEntry =  {random : Math.random()};
+        var f = lib.currentLogFile.epoch;
+        
+        //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
+        assert.doesNotThrow(function(){
+            lib.extendFile(f,nextEntry);
+        });
+        
+    },
     
 };
 
