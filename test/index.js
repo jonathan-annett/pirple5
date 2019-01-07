@@ -452,7 +452,7 @@ var printReport = function(failLimit,testLimit) {
                 stats.errors.forEach(function(failedTestFN){
                     console.log("          Test:       "+_app.colors.yellow+failedTestFN.testName+_app.colors.normal);
                     console.log("          Error:"+_app.colors.red);
-                    indentStr(String(failedTestFN.exception),24);
+                    indentStr(String(failedTestFN.exception),20);
                     var line="?",lines = failedTestFN.exception.stack.split("\n");
                     while (lines && line && line.trim().substr(0,3)!=="at " ) {
                         line = lines.shift();
@@ -463,7 +463,7 @@ var printReport = function(failLimit,testLimit) {
                     }
                     
                     if (line) {
-                        console.log("          code    : "+_app.colors.green+line.trim()+_app.colors.normal);
+                        console.log(_app.colors.normal+"          code    :    "+_app.colors.green+line.trim()+_app.colors.normal);
                     }
                     console.log("          Run Time:   " + ( failedTestFN.duration > 500 ? _app.colors.red : failedTestFN.duration > 250 ? _app.colors.yellow : _app.colors.green )+String(failedTestFN.duration /1000)+_app.colors.normal );
                     console.log("          Source:      ");
