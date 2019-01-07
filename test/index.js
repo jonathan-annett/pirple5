@@ -267,7 +267,7 @@ var printReport = function(failLimit,testLimit) {
         var testNames = Object.keys(testSet);
         
         testNames.forEach(function(testName){
-            collateStats(testSet[testName]);
+            collateStats(setStats[testName]);
         });
         
     });
@@ -374,7 +374,6 @@ var clearTestStats = function () {
     };
 };
 
-
 var right_pad=function(text,pad,color) {
    return _app.colors[color]+(new Array(pad+1).join(" ")+text).substr(0-pad)+_app.colors.normal;
 };
@@ -393,7 +392,7 @@ var testLogUpdate = function (testFN,testSetName,STAT,statColor) {
     _app.colors[statColor] +" "+STAT.substr(0,4)+" "+
     msec_pad(testFN,6,"blue") +" "+
     left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
-}
+};
 
 var onTestPass = function(testSet,testSetName,testFN,done) {
     testFN.state="passed";
