@@ -1128,6 +1128,7 @@ lib.tests = {
         //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
         assert.doesNotThrow(function(){
             lib.extendFile(f,nextEntry);
+            done();
         });
         
     },
