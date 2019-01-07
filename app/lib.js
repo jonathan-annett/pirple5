@@ -1242,14 +1242,16 @@ lib.tests = {
     function (done) {
          
             var count = 0;
-            var abort= false;
-            
+       
             lib.getAllEntries(function(err,entries){
                 
                 if (err===true) {
-                    abort = true;
                     return  done();
                 }
+                
+                assert.equal(err,false);
+                assert.equal(typeof entries,"object");
+                
                 var last;
                 entries.forEach(function(el) {
                     assert.equal(typeof el,"object");
@@ -1260,8 +1262,6 @@ lib.tests = {
                     last=el.t;
                 });
                 
-                assert.equal(err,false);
-                assert.equal(typeof entries,"object");
                 count ++;
                 
             });
@@ -1271,58 +1271,57 @@ lib.tests = {
     function (done) {
          
             var count = 0;
-            var abort= false;
-            
-            lib.getAllEntries(false,function(err,entries){
-                
-                if (err===true) {
-                    abort = true;
-                    return  done();
-                }
-                var last;
-                entries.forEach(function(el) {
-                    assert.equal(typeof el,"object");
-                    assert.equal(typeof el.t,"number");
-                    assert.equal(typeof el.e,"object");
-                    assert.equal(Object.keys(el).length,2);
-                    assert.ok(el.t>=last);
-                    last=el.t;
-                });
-                
-                assert.equal(err,false);
-                assert.equal(typeof entries,"object");
-                count ++;
-                
-            });
+             lib.getAllEntries(false,function(err,entries){
+                 
+                 if (err===true) {
+                     return  done();
+                 }
+                 
+                 assert.equal(err,false);
+                 assert.equal(typeof entries,"object");
+                 
+                 var last;
+                 entries.forEach(function(el) {
+                     assert.equal(typeof el,"object");
+                     assert.equal(typeof el.t,"number");
+                     assert.equal(typeof el.e,"object");
+                     assert.equal(Object.keys(el).length,2);
+                     assert.ok(el.t>=last);
+                     last=el.t;
+                 });
+                 
+                 count ++;
+                 
+             });
     },
     
     "lib.getAllEntries(true,cb) returns messages in reverse timestamp order"  : 
     function (done) {
          
             var count = 0;
-            var abort= false;
             
             lib.getAllEntries(true,function(err,entries){
-                
-                if (err===true) {
-                    abort = true;
-                    return  done();
-                }
-                var last;
-                entries.forEach(function(el) {
-                    assert.equal(typeof el,"object");
-                    assert.equal(typeof el.t,"number");
-                    assert.equal(typeof el.e,"object");
-                    assert.equal(Object.keys(el).length,2);
-                    assert.ok(el.t>=last);
-                    last=el.t;
-                });
-                
-                assert.equal(err,false);
-                assert.equal(typeof entries,"object");
-                count ++;
-                
-            });
+                   
+                   if (err===true) {
+                       return  done();
+                   }
+                   
+                   assert.equal(err,false);
+                   assert.equal(typeof entries,"object");
+                   
+                   var last;
+                   entries.forEach(function(el) {
+                       assert.equal(typeof el,"object");
+                       assert.equal(typeof el.t,"number");
+                       assert.equal(typeof el.e,"object");
+                       assert.equal(Object.keys(el).length,2);
+                       assert.ok(el.t<=last);
+                       last=el.t;
+                   });
+                   
+                   count ++;
+                   
+               });
     },
     
  
