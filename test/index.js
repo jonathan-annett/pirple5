@@ -19,12 +19,12 @@ _app.colors = {
 
 
 _app.colors.args  = _app.colors.yellow;
-_app.colors.symbol  = _app.colors.blue;
+_app.colors.symbol  = _app.colors.red;
 _app.colors.property  = _app.colors.magenta;
 _app.colors.error   = _app.colors.red;
 _app.colors.keyword = _app.colors.green;
 _app.colors.reserved = _app.colors.cyan;
-_app.colors.string = _app.colors.red;
+_app.colors.string = _app.colors.yellow;
 
 var javascript = {
     reserved : "done.assert.abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
@@ -74,7 +74,13 @@ javascript.colorize = function (src){
                                                                if (i>0) tokens.push('(');
                                                                token.split(')').forEach(function(token,i){
                                                                    if (i>0) tokens.push(')');
-                                                                   tokens.push (token);
+                                                                   token.split('{').forEach(function(token,i){
+                                                                       if (i>0) tokens.push('{');
+                                                                       token.split('}').forEach(function(token,i){
+                                                                           if (i>0) tokens.push('}');
+                                                                           tokens.push (token);
+                                                                       });
+                                                                   });
                                                                });
                                                            });
                                                        });
@@ -111,20 +117,15 @@ javascript.colorize = function (src){
            return token;
        } else {
             switch (token) {
-                   case "(":
-                   case ")":
-                   case ";":
-                   case ":":
-                   case ".":
-                   case ",":
-                   case "+":
-                   case "-":
-                   case "/":
-                   case "*":
+                   
+                   case ";": case ":": case ".": case ",":
+                   
+                   case "+": case "-": case "/": case "*":
+                   case "(": case ")":
+                   case "{" : case "}" :
                    case "\\":
                        return _app.colors.symbol + token + _app.colors.normal;
-                   case '"':
-                   case "'":
+                   case '"': case "'":
                        instr = token;
                        return _app.colors.string + token;
                    
