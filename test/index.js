@@ -605,20 +605,32 @@ _app.stats    = {};
 _app.setStats = {};
 
 
-var 
-testStatsFn = path.join(path.dirname(__filename),path.basename(__filename)+".ver.json"),
-selfTestNeeded = !fs.existsSync(testStatsFn),
-sha256sum = crypto.createHash("sha256").update(fs.readFileSync(__filename), "utf8").digest("base64");
+var sourceCodeTestNeeded = function(filename) {
+    filename = filename.substr(-3)===".js" ?  filename : path.join(path.dirname(filename),filename,"index.js");  
+    var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
+    testNeeded = !fs.existsSync(testStatsFn),
+    sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
+    
+    if (!testNeeded) {
+        var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
+        testNeeded = ( sha256sum !== selfTestStats.sha256sum);
+    }
+    if (testNeeded) {
+        fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
+    }
+    return testNeeded;
+},
+selfTestNeeded = sourceCodeTestNeeded(__filename),
+runTestsIfNeeded = function (testName,rel_path) {
+    if (sourceCodeTestNeeded(testName,rel_path)) {
+        _app.tests[testName] =  require(rel_path).tests;
+    }
+};
 
-if (!selfTestNeeded) {
-    var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
-    selfTestNeeded = ( sha256sum !== selfTestStats.sha256sum);
-}
 
 if (selfTestNeeded) {
      console.log(_app.colors.red+ path.basename(__filename)+" has changed, running self tests"+_app.colors.normal);
-     fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
-     
+
     _app.tests.selfTest = {
         
         "always passes" : function (done) {
@@ -636,6 +648,6 @@ if (selfTestNeeded) {
     } ;
 }
  
-_app.tests.lib = require("../app/lib").tests;
+runTestsIfNeeded ("lib","../app/lib");
 
 _app.run();
