@@ -3,6 +3,138 @@ var [assert] = [require("assert")];
 
 var _app = module.exports = {};
 
+
+_app.colors = {
+    normal : "\x1b[0m",
+    black : "\x1b[30m",
+    red : "\x1b[31m",
+    green : "\x1b[32m",
+    yellow : "\x1b[33m",
+    blue : "\x1b[34m",
+    magenta : "\x1b[35m",
+    cyan : "\x1b[36m",
+    white : "\x1b[37m"
+};
+
+
+_app.colors.args  = _app.colors.yellow;
+_app.colors.symbol  = _app.colors.blue;
+_app.colors.property  = _app.colors.magenta;
+_app.colors.error   = _app.colors.red;
+_app.colors.keyword = _app.colors.green;
+_app.colors.reserved = _app.colors.cyan;
+
+var javascript = {
+    reserved : "abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
+    properties : "hasOwnProperty.Infinity.isFinite.isNaN.isPrototypeOf.length.Math.NaN.name.Number.Object.prototype.String.toString.undefined.valueOf".split("."),
+};
+
+javascript.colors = {
+    reserved : javascript.reserved.map(function(token){ return _app.colors.reserved+token+_app.colors.normal;}),
+    properties : javascript.properties.map(function(token){ return _app.colors.property+token+_app.colors.normal;}),
+   
+};
+
+javascript.colorize = function (src){
+   
+   var tokens = [];
+   
+   // tokenize the javascript source
+   src.split(" ").forEach(function(token){
+       token.split(".").forEach(function(token){
+           token.split(",").forEach(function(token){
+               token.split(";").forEach(function(token){
+                   token.split("'").forEach(function(token){
+                       token.split('"').forEach(function(token){
+                           token.split('+').forEach(function(token){
+                               token.split('-').forEach(function(token){
+                                   token.split('*').forEach(function(token){
+                                       token.split('/').forEach(function(token){
+                                           token.split('\\').forEach(function(token){
+                                               token.split('\t').forEach(function(token){
+                                                   token.split('\n').forEach(function(token){
+                                                       token.split(':').forEach(function(token){
+                                                           tokens.push (token);
+                                                           tokens.push(':');
+                                                       });
+                                                       tokens.push('\n');
+                                                   });
+                                                   tokens.push('\t');
+                                               });
+                                               tokens.push('\\');
+                                           });
+                                           tokens.push('/');
+                                       });
+                                       tokens.push('*');
+                                   });
+                                   tokens.push('-');
+                               });
+                               tokens.push('+');
+                           });
+                           tokens.push('"');
+                       });
+                       tokens.push("'");
+                   });
+                   tokens.push(";");
+               });    
+               tokens.push(",");
+           });
+           tokens.push(".");
+       });
+       tokens.push(" ");
+   });
+   
+   var instr=false,escaped=false;
+   // colorize the tokens
+   var result = tokens.map(function(token){
+       if (instr) {
+           
+           if (!escaped && instr===token) {
+               instr = false;
+               return token+ _app.colors.normal;
+           }
+           
+           if (token==="\\") {
+                escaped = !escaped;
+           } else {
+                escaped=false;
+           }
+           
+           return token;
+       } else {
+            switch (token) {
+                   case ";":
+                   case ":":
+                   case ".":
+                   case ",":
+                   case "+":
+                   case "-":
+                   case "/":
+                   case "*":
+                   case "\\":
+                       return _app.colors.symbol + token + _app.colors.normal;
+                   case '"':
+                   case "'":
+                       instr = token;
+                       return _app.colors.string + token;
+                   
+                   default:
+                   var ix = javascript.reserved.indexOf(token);
+                   if (ix>=0) {
+                       return javascript.colors.reserved[ix];
+                   }
+                   ix = javascript.keyword.indexOf(token);
+                   if (ix>=0) {
+                       return javascript.colors.keyword[ix];
+                   }
+                   return token;
+            }
+       }
+   });
+   
+   return result.join("");
+};
+
 _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
@@ -201,7 +333,7 @@ var printReport = function(failLimit,testLimit) {
                     indentStr(String(failedTestFN.exception),16);
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
-                    indentStr(String(failedTestFN.toString()),16,1,1);
+                    indentStr(javascript.colorize(failedTestFN.toString()),16,1,1);
                     console.log(""); 
                 });
             }
