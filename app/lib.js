@@ -854,7 +854,7 @@ lib.tests = {
     
     "lib.createLogListItem({compressed:true},fn) does not create an object" : function (done) {
         var fn = lib.logFileName(Date.now());
-        var value = lib.createLogListItem ({},fn);
+        var value = lib.createLogListItem ({compressed:true},fn);
         assert.equal(typeof value,'object');
         assert.equal(value,null);
         done();
@@ -862,7 +862,7 @@ lib.tests = {
     
     "lib.createLogListItem({all:true},fn_gz) creates an object" : function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
-        var value = lib.createLogListItem ({compressed:true},fn_gz);
+        var value = lib.createLogListItem ({all:true},fn_gz);
         assert.equal(typeof value,'object');
         assert.notEqual(value,null);
         done();
