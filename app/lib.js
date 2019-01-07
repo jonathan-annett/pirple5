@@ -90,16 +90,20 @@ lib.compressedLogFileName=function(f) {
 
 //sort method to pass into array.sort() for an array with element.epoch for each element
 lib.epoch_sort_recent_first = function(a,b){
-  if (a.epoch > b.epoch) return -1;
-  if (a.epoch < b.epoch) return 1;
-  return 0;
+    var A = a.t || a.epoch;
+    var B = b.t || b.epoch;
+    if (A > B) return -1;
+    if (A < B) return 1;
+    return 0;
 };
 
 //sort method to pass into array.sort() for an array with element.epoch for each element
 lib.epoch_sort_recent_last = function(a,b){
-  if (a.epoch > b.epoch) return 1;
-  if (a.epoch < b.epoch) return -1;
-  return 0;
+    var A = a.t || a.epoch;
+    var B = b.t || b.epoch;
+    if (A > B) return 1;
+    if (A < B) return -1;
+    return 0;
 };
 
 // lib.createLogListItemGetter() adds a .get method to item 
