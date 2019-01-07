@@ -271,7 +271,7 @@ var printReport = function(failLimit,testLimit) {
         var testSet = _app.tests[testSetName];
         var testNames = Object.keys(testSet);
         
-        testNames.forEach(function(testName){
+        testNames.forEach(function(testSetName){
             collateStats(_app.setStats[testSetName]);
         });
         
