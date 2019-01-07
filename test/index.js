@@ -633,8 +633,6 @@ runTestsIfNeeded = function (testName,rel_path) {
 
 
 if (selfTestNeeded) {
-     console.log(_app.colors.red+ path.basename(__filename)+" has changed, running self tests"+_app.colors.normal);
-
     _app.tests.selfTest = {
         
         "always passes" : function (done) {
