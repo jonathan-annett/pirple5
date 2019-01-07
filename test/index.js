@@ -32,6 +32,10 @@ var _app = module.exports = {};
 
 _app.timeout = 10000;
 
+_app.timeout_log_after = 5000;
+
+_app.timeout_log_every = 1000;
+
 _app.colors = {
     normal : "\x1b[0m",
     black : "\x1b[30m",
@@ -226,7 +230,7 @@ var runTest=function(testSet,testSetName,testName,done){
                  var elapsed = Date.now()-testFN.started;
                  if ( elapsed < _app.timeout) {
                      console.log(msg_prefix+String(Math.round(elapsed/1000))+msg_suffix);
-                     return (doneCompleted = setTimeout(timeoutChecker,1000));
+                     return (doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_every));
                  }
                  doneCompleted=false;
                  repeatKill = true;
@@ -236,7 +240,7 @@ var runTest=function(testSet,testSetName,testName,done){
                      new Error(message),
                      done);
              };
-        doneCompleted = setTimeout(timeoutChecker,5000);
+        doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_after);
         
         
         var 
