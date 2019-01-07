@@ -222,17 +222,27 @@ lib.listLogs = function(opt,cb){
 // create a new log file, with an object for the first entry
 //lib.createFile (firstEntry,cb) ---> cb(err,fn,firstEntry) .... fn is the filename for future writes
 lib.createFile = function (firstEntry,cb){
+    if (typeof firstEntry==='function') {
+        cb=firstEntry;
+        firstEntry = undefined;
+    }
+    
+    
     var when = Date.now();
     var fn = lib.logFileName(when);
     if (fn===false) throw new Error("Unknown error establishing log filename");
+    
+    if (typeof firstEntry !== 'object' || firstEntry===null) {
+        firstEntry = {"info":"log file created",fn:fn};
+    }
 
     var file_string = JSON.stringify([{t:when,e:firstEntry}]);
     
     fs.writeFile(fn,file_string,function(err){
         if (err) {
-          return cb(err);  
+          return typeof cb === 'function' ?  cb(err) : undefined;  
         }   
-        cb(false,fn,firstEntry);
+        if (typeof cb === 'function' ) cb(false,fn,firstEntry);
     });
     return fn;
 };
@@ -990,6 +1000,103 @@ lib.tests = {
               done();
           });
     },
+    
+    
+    "lib.createFile(cb) calls cb with a string filename that points to valid JSON file": 
+    function (done) {
+          lib.createFile(function(err,fn,entry){
+              assert.equal(err,false);
+              assert.equal(typeof fn,'string');
+              assert.equal(typeof entry,'object');
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(typeof data[0].e,'object');
+              done();
+          });
+    },
+    
+    "lib.createFile(undefined,cb) calls cb with a string filename that points to valid JSON file": 
+    function (done) {
+          lib.createFile(undefined,function(err,fn,entry){
+              assert.equal(err,false);
+              assert.equal(typeof fn,'string');
+              assert.equal(typeof entry,'object');
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(typeof data[0].e,'object');
+              done();
+          });
+    },
+    
+    "lib.createFile(null,cb) calls cb with a string filename that points to valid JSON file": 
+    function (done) {
+          lib.createFile(null,function(err,fn,entry){
+              assert.equal(err,false);
+              assert.equal(typeof fn,'string');
+              assert.equal(typeof entry,'object');
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(typeof data[0].e,'object');
+              done();
+          });
+    },
+    
+    "lib.createFile(firstEntry) does not throw":
+    function (done) {
+          var firstEntry = {hello:"world"};
+          assert.doesNotThrow(function() {
+               lib.createFile(firstEntry);
+               done();
+          });
+    },
+    
+    
+    "lib.createFile(firstEntry) returns a string filename that points to valid JSON file": 
+    function (done) {
+          var firstEntry = {hello:"world"};
+          var JS = JSON.stringify(firstEntry);
+          
+          var fn = lib.createFile(firstEntry);
+          
+          setTimeout(function(){
+              assert.equal(typeof fn,'string');
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(JSON.stringify(data[0].e),JS);
+              done();
+          },1000);
+    },
+    
+    
+    
+    "lib.createFile() does not throw":
+    function (done) {
+           assert.doesNotThrow(function() {
+               lib.createFile();
+               done();
+          });
+    },
+    
+    
+    "lib.createFile() returns a string filename that points to valid JSON file": 
+    function (done) {
+          
+          var fn = lib.createFile();
+          assert.equal(typeof fn,'string');
+              
+          setTimeout(function(){
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(typeof data[0].e,'object');
+              done();
+          },1000);
+    },
+    
     
 };
 
