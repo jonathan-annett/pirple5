@@ -410,6 +410,7 @@ lib.decompressFile= function(f,cb){
 lib.all_epochs=[];
 lib.getEntriesCache={};
 lib.getEntriesCache_=[];
+//lib.getEntries(epoch,cb) --> cb(false,entries)
 lib.getEntries = function(epoch,cb){
     
     
@@ -449,6 +450,31 @@ lib.getEntries = function(epoch,cb){
            }
        });
    });  
+};
+//lib.getEntries(epoch,cb) --> cb(false,entries,isLast)
+lib.getAllEntries = function (reverse,cb) {
+    if (typeof reverse==='function') {
+        cb = reverse;
+        reverse = false;
+    }
+    
+    lib.listLogs ({all:true,getter:true},function(logs){
+        var delta = reverse ? 1 : -1;
+        var start = reverse ? 0 : logs.length-1;
+        var endLoop = reverse ? function (i) { return i >= logs.length} : function (i) {return i<0;};
+        
+        var loop = function (i) {
+            if (endLoop(i)) {
+                cb();
+            } else {
+                lib.getEntries(logs[i].epoch,function(err,entries){
+                    cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries ,endLoop(i+delta));
+                    loop(i+delta);
+                });
+            }
+        };
+        loop(start);
+    });
 };
 
 
@@ -1172,8 +1198,36 @@ lib.tests = {
          
     },
     
+    "lib.getAllEntries(cb) does not throw"  : 
+    function (done) {
+        assert.doesNotThrow(function(){
+            lib.getAllEntries(function(){
+                done();
+            });
+        });
+    },
     
-    //lib.arrayExtendFile (f,nextEntries,cb) --> cb (false,fn,nextEntries);
+    
+    "lib.getAllEntries(true,cb) does not throw"  : 
+    function (done) {
+        assert.doesNotThrow(function(){
+            lib.getAllEntries(true,function(){
+                done();
+            });
+        });
+    },
+    
+    "lib.getAllEntries(false,cb) does not throw"  : 
+    function (done) {
+        assert.doesNotThrow(function(){
+            lib.getAllEntries(false,function(){
+                done();
+            });
+        });
+    },
+    
+    
+    
 
     
 };
