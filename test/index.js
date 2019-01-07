@@ -397,10 +397,10 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     _app.setStats[testSetName].count  ++;
     _app.setStats[testSetName].passes ++;
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",10,"normal")+
+    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
                  _app.colors.green +" PASS "+
-                 msec_pad(testFN,6,"blue") +
-                 left_pad(testFN.testName,process.stdout.columns-24));
+                 msec_pad(testFN,6,"blue") +" "+
+                 left_pad(testFN.testName,process.stdout.columns-25,"yellow"));
     done();
 };
 
@@ -413,10 +413,10 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].count    ++;
     _app.setStats[testSetName].errors.push (testFN);
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",10,"normal")+
-                _app.colors.green +" FAIL "+
-                msec_pad(testFN,6,"blue") +
-                left_pad(testFN.testName,process.stdout.columns-24));
+    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
+                _app.colors.red +" FAIL "+
+                msec_pad(testFN,6,"blue") +" "+
+                left_pad(testFN.testName,process.stdout.columns-25,"yellow"));
     done();
 };
 
