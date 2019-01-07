@@ -658,7 +658,7 @@ lib.tests = {
         assert.doesNotThrow(function(){
             lib.init(function (err){
                 if (!err) {
-                    done();
+                    //done();
                 }
             });
         },TypeError);    
