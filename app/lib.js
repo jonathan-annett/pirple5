@@ -1207,7 +1207,7 @@ lib.tests = {
     
     "lib.getAllEntries(cb) does not throw"  : 
     function (done) {
-        assert.doesNotThrow(function(){
+        //assert.doesNotThrow(function(){
             var count = 0;
             lib.getAllEntries(function(err,entries){
                 if (err===true) {
@@ -1218,7 +1218,7 @@ lib.tests = {
                 count ++;   
             });
            
-        });
+        //});
     },
      
     /*
