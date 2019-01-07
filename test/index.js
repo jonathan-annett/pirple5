@@ -380,7 +380,8 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     _app.setStats[testSetName].count  ++;
     _app.setStats[testSetName].passes ++;
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( _app.colors.yellow + testFN.testName +
+    console.log( _app.colors.normal + "[" + testSetName + " # "+testFN.index+"]"+
+                 _app.colors.yellow + testFN.testName +
                  _app.colors.green +" PASS "+
                  _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
     done();
@@ -395,7 +396,8 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].count    ++;
     _app.setStats[testSetName].errors.push (testFN);
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( _app.colors.yellow + testFN.testName +
+    console.log( _app.colors.normal + "[" + testSetName + " # "+testFN.index+"]"+
+                 _app.colors.yellow + testFN.testName +
                  _app.colors.red +" FAIL "+
                  _app.colors.blue + "("+String(testFN.finished-testFN.started)+" msec)");
     done();
@@ -543,6 +545,7 @@ _app.run = function(failLimit,testLimit,cb){
                     var testName = testNames[x];
                         
                     // asyncronously perform the test
+                    testNames[x].index = x;
                     runTest(testSet,testSetName,testName, function (){
                         var statsx = _app.setStats[testSetName];
                         _app.stats.finished =statsx.finished ; 
