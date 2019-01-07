@@ -326,7 +326,7 @@ var printReport = function(failLimit,testLimit) {
     console.log(hr);
     console.log("");
     console.log("      Tests Run:  "+testLimit );
-    console.log("      Fail Limit: "+failLimit )
+    console.log("      Fail Limit: "+failLimit );
     console.log("      Passes:     "+_app.stats.passes);
     console.log("      Failures:   "+_app.stats.errors.length);
     console.log("      Run Time:   "+ String(_app.stats.duration /1000) );
@@ -388,7 +388,6 @@ var getTestCount = function() {
    },0);  
 };
 
-
 var clearTestSetStats = function(testSetName){
     var testSet = _app.tests[testSetName];
     _app.setStats[testSetName] = {
@@ -425,10 +424,9 @@ var left_pad=function(text,pad,color) {
    return _app.colors[color]+(text +new Array(pad+1).join(" ")).substr(0,pad)+_app.colors.normal;
 };
 
-
 var msec_pad=function(testFN,pad,color) {
    return right_pad(String(testFN.finished-testFN.started),pad,color);
-}
+};
 
 var testLogUpdate = function (testFN,testSetName,STAT,statColor) {
     console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
@@ -544,6 +542,8 @@ var runTest=function(testSet,testSetName,testName,done){
                 if (repeatKill) {
                     // if a test runs away on us and calls done more than once, 
                     // we need to ignore extra calls
+                    testLogUpdate(testFN,testSetName,"REPT","red",Date.now());
+                    
                     return;
                 }
                 testFN.finished = stamp;
@@ -570,7 +570,7 @@ var runTest=function(testSet,testSetName,testName,done){
     }
 };
 
-
+// main test iterator
 _app.run = function(failLimit,testLimit,cb){
     
     var testCount = getTestCount ();
@@ -581,7 +581,7 @@ _app.run = function(failLimit,testLimit,cb){
     clearTestStats();
     _app.stats.finished = _app.stats.started = Date.now() ;
     
-    // runTestSet will be called once for each element index of testSetName keys
+    // runTestSet will be called once for each element index of testSetName 
     var runTestSet = function (i) {
         
         if (i>= testSetNames.length) {
@@ -607,7 +607,7 @@ _app.run = function(failLimit,testLimit,cb){
             
             var testNames  = Object.keys(testSet);
 
-            // runTestX will be called once for each element index of testSet keys
+            // runTestX will be called once for each element index of testSet testNames
             var runTestX = function (x) {
                 if (x>= testNames.length) {
                     _app.setStats[testSetName].started =  testSet[ testNames[0] ].started;
@@ -649,9 +649,7 @@ _app.run = function(failLimit,testLimit,cb){
     
 };
 
-
-
-
+// auto load the tests.json file
 (function (testPathsJSON) {
     var testPaths = JSON.parse(testPathsJSON);
     console.log("Test configuration: (in test/tests.json)");
@@ -692,5 +690,5 @@ if (selfTestNeeded) {
    );
 }
 
-
+// start the tests
 _app.run();
