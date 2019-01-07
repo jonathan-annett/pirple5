@@ -662,8 +662,7 @@ lib.tests = {
     "lib.basedir created ok after lib.init()" : function (done) {
         var stat = fs.statSync(lib.basedir);
         assert.ok(stat && stat.isDirectory());
-        var str = " hello() world's ok then alert me ";
-        //done();
+        done();
     },    
     
     
