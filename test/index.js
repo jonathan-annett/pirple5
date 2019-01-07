@@ -434,9 +434,9 @@ var printReport = function(failLimit,testLimit) {
     testSetNames.forEach(function(testSetName){
         var stats = _app.setStats[testSetName];
         console.log("         "+testSetName+" :  ");
-        console.log("          Passes:    "+stats.passes);
-        console.log("          Failures:   "+stats.errors.length);
-        console.log("          Run Time:   "+ String(stats.duration /1000) );
+        console.log("          Passes:    "  + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.yellow )  + stats.passes + _app.colors.normal );
+        console.log("          Failures:   " + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.red ) + stats.errors.length) + _app.colors.normal;
+        console.log("          Run Time:   " + String(stats.duration /1000) );
         console.log("");
         
     });
@@ -450,9 +450,9 @@ var printReport = function(failLimit,testLimit) {
             if (stats.errors.length>0) {
                 console.log("         "+testSetName+" :  ");
                 stats.errors.forEach(function(failedTestFN){
-                    console.log("          Test:       "+failedTestFN.testName);
-                    console.log("          Error:");
-                    indentStr(String(failedTestFN.exception),16);
+                    console.log("          Test:       "+_app.colors.yellow+failedTestFN.testName+_app.colors.normal);
+                    console.log("          Error:"+_app.colors.red);
+                    indentStr(String(failedTestFN.exception),24);
                     var line="?",lines = failedTestFN.exception.stack.split("\n");
                     while (lines && line && line.trim().substr(0,3)!=="at " ) {
                         line = lines.shift();
@@ -463,9 +463,9 @@ var printReport = function(failLimit,testLimit) {
                     }
                     
                     if (line) {
-                        console.log("          code    :   "+line.trim());
+                        console.log("          code    : "+_app.colors.green+line.trim()+_app.colors.normal);
                     }
-                    console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
+                    console.log("          Run Time:   " + ( failedTestFN.duration > 500 ? _app.colors.red : failedTestFN.duration > 250 ? _app.colors.yellow : _app.colors.green )+String(failedTestFN.duration /1000)+_app.colors.normal );
                     console.log("          Source:      ");
                     indentStr(javascript.colorize(failedTestFN.toString()),16);
                     console.log("");
