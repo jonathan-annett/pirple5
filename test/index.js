@@ -36,6 +36,11 @@ _app.timeout_log_after = 5000;
 
 _app.timeout_log_every = 1000;
 
+_app.tests    = {};
+_app.stats    = {};
+_app.setStats = {};
+_app.setStatJSON = {};
+
 _app.colors = {
     normal : "\x1b[0m",
     black : "\x1b[30m",
@@ -267,7 +272,7 @@ var printReport = function(failLimit,testLimit) {
         var testNames = Object.keys(testSet);
         
         testNames.forEach(function(testName){
-            collateStats(setStats[testName]);
+            collateStats(_app.setStats[testName]);
         });
         
     });
@@ -548,10 +553,11 @@ _app.run = function(failLimit,testLimit,cb){
     var runTestSet = function (i) {
         
         if (i>= testSetNames.length) {
+            
             printReport(failLimit,testLimit);
             
             testSetNames.forEach(function(testSetName){
-                 var sha256Info = _app.setStatJSON[testSetName];
+                 var sha256Info     = _app.setStatJSON[testSetName];
                  sha256Info.results = _app.setStats[testSetName];
                  fs.writeFileSync(sha256Info.fn,JSON.stringify(sha256Info));
             });
@@ -607,19 +613,18 @@ _app.run = function(failLimit,testLimit,cb){
     
 };
 
-_app.tests    = {};
-_app.stats    = {};
-_app.setStats = {};
-_app.setStatJSON = {};
 
 var sourceCodeTestNeeded = function(testName,filename) {
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
     sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
-    
+    var lastFail=false;
     if (!testNeeded) {
         var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
         testNeeded = ( sha256sum !== selfTestStats.sha256sum);
+        if (!selfTestStats.results || selfTestStats.results.errors.length>0) {
+            lastFail = true;
+        }
     }
     
     var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
@@ -629,6 +634,11 @@ var sourceCodeTestNeeded = function(testName,filename) {
         console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
     } else {
         console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
+        if (lastFail && testName!=="selfTest") {
+            testNeeded = true;
+            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red +dispname+" failed on last test"+_app.colors.normal);
+        }
+        
     }
     return testNeeded;
 },
