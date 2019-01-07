@@ -542,7 +542,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 if (repeatKill) {
                     // if a test runs away on us and calls done more than once, 
                     // we need to ignore extra calls
-                    testLogUpdate(testFN,testSetName,"REPT","red",Date.now());
+                    testLogUpdate(testFN,testSetName,"REPT","red");
                     
                     return;
                 }
