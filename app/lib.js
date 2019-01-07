@@ -1246,7 +1246,7 @@ lib.tests = {
             lib.getAllEntries(function(err,entries){
                 if (err===true) {
                     abort=true;
-                    done();
+                    return  done();
                 }
                 assert.equal(err,false);
                 assert.equal(typeof entries,"object");
