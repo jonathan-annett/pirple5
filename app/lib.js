@@ -637,6 +637,7 @@ lib.log = function ( logEntry, cb ) {
         return newFile();
     }
     
+    
     if (typeof lib.currentLogFile.get === 'function') {
         return lib.currentLogFile.get(function(err,entries){
             
