@@ -25,8 +25,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 "use strict";
 /* explode-require the node-libs we need */
 var needed =
-    "assert";
-var [assert] = needed.split(",").map(require);
+    "assert,fs,path";
+var [assert,fs,path] = needed.split(",").map(require);
 
 var _app = module.exports = {};
 
@@ -604,22 +604,39 @@ _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
 
- 
-_app.tests.selfTest = {
-    
-    "always passes" : function (done) {
-        assert.ok(true);
-        done();
-    },
-    
-    "never passes" : function (done) {
-        assert.ok(false);
-        done();
-    },
-    "never completes" : function (done) {
 
-    },
-} ;
+var 
+testStatsFn = path.join(path.dirname(__filename),path.basename(__filename)+".ver.json"),
+selfTestNeeded = !fs.exists(testStatsFn),
+selfStatInfo = fs.statSync(__filename);
+
+if (!selfTestNeeded) {
+    var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
+    selfTestNeeded = ( selfStatInfo.mtime.getTime() !== selfTestStats.mtime) ||
+                     ( selfStatInfo.size !== selfTestStats.size);
+}
+
+ if (selfTestNeeded) {
+     fs.writeFileSync(testStatsFn,JSON.stringify({
+         mtime:selfStatInfo.mtime.getTime(),
+         size : selfStatInfo.size
+     }));
+    _app.tests.selfTest = {
+        
+        "always passes" : function (done) {
+            assert.ok(true);
+            done();
+        },
+        
+        "never passes" : function (done) {
+            assert.ok(false);
+            done();
+        },
+        "never completes" : function (done) {
+    
+        },
+    } ;
+}
  
 _app.tests.lib = require("../app/lib").tests;
 
