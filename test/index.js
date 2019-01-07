@@ -211,8 +211,10 @@ var runTest=function(testSet,testSetName,testName,done){
         var doneCompleted = setTimeout(function(){
             doneCompleted=false;
             repeatKill = true;
+            var message = "Test did not complete after "+String(_app.timeout/1000)+" seconds";
+            console.log(testName+"\n"+message);
             onTestFail(testSet,testSetName,testFN,
-                new Error("Test did not complete after "+String(_app.timeout/1000)+" seconds"),
+                new Error(message),
                 done);
         },_app.timeout);
         
