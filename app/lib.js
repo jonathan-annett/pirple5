@@ -477,7 +477,7 @@ lib.getAllEntries = function (reverse,cb) {
                         
                         if (err) return cb(err);
                         
-                        cb(false, entries );
+                        cb(false, entries.sort(lib.epoch_sort_recent_last) );
                         
                         loop(++i);
                         
