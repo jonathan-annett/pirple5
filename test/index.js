@@ -669,11 +669,14 @@ if (selfTestNeeded) {
     } ;
 }
 
-(function (testPaths) {
+(function (testPathsJSON) {
+    var testPaths = JSON.parse(testPathsJSON);
+    console.log("Test configuration:");
+    console.dir({"test/tests.json":testPaths},{colors:true});
     Object.keys(testPaths).forEach(function(testSetName){
         runTestsIfNeeded (testSetName,testPaths[testSetName]);
     });
-})(JSON.parse(fs.readFileSync(path.join(path.dirname(__filename),"tests.json"))));
+})(fs.readFileSync(path.join(path.dirname(__filename),"tests.json")));
 
 if (selfTestNeeded) {
     console.log(
