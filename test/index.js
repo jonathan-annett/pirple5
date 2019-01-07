@@ -388,7 +388,12 @@ var msec_pad=function(testFN,pad,color) {
    return right_pad(String(testFN.finished-testFN.started),pad,color);
 }
 
-
+var testLogUpdate = function (testFN,testSetName,STAT,statColor) {
+    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
+    _app.colors[statColor] +" "+STAT.substr(0,4)+" "+
+    msec_pad(testFN,6,"blue") +" "+
+    left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
+}
 
 var onTestPass = function(testSet,testSetName,testFN,done) {
     testFN.state="passed";
@@ -397,10 +402,9 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     _app.setStats[testSetName].count  ++;
     _app.setStats[testSetName].passes ++;
     _app.setStats[testSetName].finished = testFN.finished;
-    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
-                 _app.colors.green +" PASS "+
-                 msec_pad(testFN,6,"blue") +" "+
-                 left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
+    
+    testLogUpdate(testFN,testSetName,"PASS","green");
+    
     done();
 };
 
@@ -413,6 +417,7 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].count    ++;
     _app.setStats[testSetName].errors.push (testFN);
     _app.setStats[testSetName].finished = testFN.finished;
+    testLogUpdate(testFN,testSetName,"FAIL","red");
     console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
                 _app.colors.red +" FAIL "+
                 msec_pad(testFN,6,"blue") +" "+
@@ -443,13 +448,13 @@ var runTest=function(testSet,testSetName,testName,done){
             timeoutChecker = function(){
                  var elapsed = Date.now()-testFN.started;
                  if ( elapsed < _app.timeout) {
-                     console.log(msg_prefix+String(Math.round(elapsed/1000))+msg_suffix);
+                     testFN.finished = Date.now();
+                     testLogUpdate(testFN,testSetName,"WAIT","red");
                      return (doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_every));
                  }
                  doneCompleted=false;
                  repeatKill = true;
                  var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
-                 console.log(_app.colors.magenta+testName+"\n"+_app.colors.red+message+_app.colors.normal);
                  testFN.finished = Date.now();
                  onTestFail(testSet,testSetName,testFN,
                      new Error(message),
