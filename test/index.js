@@ -651,28 +651,30 @@ _app.run = function(failLimit,testLimit,cb){
 
 
 
-if (selfTestNeeded) {
-    _app.tests.selfTest = {
-        
-        "always passes" : function (done) {
-            assert.ok(true);
-            done();
-        },
-        
-        "never passes" : function (done) {
-            assert.ok(false);
-            done();
-        },
-        "never completes" : function (done) {
-    
-        },
-    } ;
-}
 
 (function (testPathsJSON) {
     var testPaths = JSON.parse(testPathsJSON);
     console.log("Test configuration: (in test/tests.json)");
     console.dir(testPaths,{colors:true});
+    
+    if (selfTestNeeded) {
+        _app.tests.selfTest = {
+            
+            "always passes" : function (done) {
+                assert.ok(true);
+                done();
+            },
+            
+            "never passes" : function (done) {
+                assert.ok(false);
+                done();
+            },
+            "never completes" : function (done) {
+        
+            },
+        } ;
+    }
+    
     Object.keys(testPaths).forEach(function(testSetName){
         runTestsIfNeeded (testSetName,testPaths[testSetName]);
     });
