@@ -462,28 +462,55 @@ lib.getAllEntries = function (reverse,cb) {
     }
     
     if (typeof cb==='function') {
-        lib.listLogs ({all:true,getter:true},function(logs){
-            var delta = reverse ? 1 : -1;
-            var start = reverse ? 0 : logs.length-1;
-            var endLoop = reverse ? function (i) { return i >= logs.length} : function (i) {return i<0;};
+        
+        lib.listLogs ({all:true},function(logs){
             
             var loop = function (i) {
-                if (endLoop(i)) {
+                
+                if (i > logs.length-1) {
+                    
                     return cb(true);
+                    
                 } else {
                     
                     lib.getEntries(logs[i].epoch,function(err,entries){
+                        
                         if (err) return cb(err);
                         
-                        cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries );
+                        cb(false, entries );
                         
-                        loop(i+delta);
+                        loop(++i);
                         
                     });
                 }
             };
-            loop(start);
+            
+            var reverse_loop = function (i) {
+               if (i<0) {
+                   return cb(true);
+               } else {
+                   
+                   lib.getEntries(logs[i].epoch,function(err,entries){
+                       
+                       if (err) return cb(err);
+                       
+                       cb(false, entries.sort(lib.epoch_sort_recent_first) );
+                       
+                       reverse_loop(--i);
+                       
+                   });
+                   
+               }
+           };
+
+            if (reverse) {
+                reverse_loop(0);
+            } else {
+                loop(logs.length-1);
+            }
+            
         });
+        
     }
    
 };
