@@ -353,9 +353,10 @@ var clearTestSetStats = function(testSetName){
        passes   : 0,
        errors   : []
     };
-    Object.keys(testSet).forEach(function(testName){
+    Object.keys(testSet).forEach(function(testName,ix){
         var testFN = testSet[testName];
         testFN.state="not run";
+        testFN.index = ix;
         delete testFN.exception;
         delete testFN.started;
         delete testFN.finished;
@@ -545,7 +546,6 @@ _app.run = function(failLimit,testLimit,cb){
                     var testName = testNames[x];
                         
                     // asyncronously perform the test
-                    testNames[x].index = x;
                     runTest(testSet,testSetName,testName, function (){
                         var statsx = _app.setStats[testSetName];
                         _app.stats.finished =statsx.finished ; 
