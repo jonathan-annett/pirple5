@@ -555,16 +555,12 @@ lib.log = function ( logEntry, cb ) {
                     return newFile();
              }
              
-             console.log({LogFileEntriesCount:entries.length});
-             console.log({LogFileSize:lib.currentLogFile.uncompressed_size});
              if (lib.currentLogFile.uncompressed_size > lib.config.maxLogSizeBytes) {
                   return newFile();
              }
              
              var msec_per_hour = (1000 * 60 * 60);
              var age_in_hours = (Date.now()-lib.currentLogFile.epoch) / msec_per_hour;
-             
-             console.log({vs:{LogFileHours:age_in_hours,limit:lib.config.maxLogHoursPerFile}});
              
              if ( age_in_hours >  lib.config.maxLogHoursPerFile ) {
                      return newFile();
@@ -613,7 +609,6 @@ lib.init = function(cb){
                
                // collect all the log file epochs, with most recent last (hence unshift)
                list.forEach(function(entry,ix){
-                   console.log(ix,entry.epoch);
                    lib.all_epochs.unshift(entry.epoch);
                });
                
@@ -631,9 +626,7 @@ lib.init = function(cb){
                
                if (list.length <= lib.config.maxUncompressedFileCount) {
                    return lib.log(startupEntry,function(){
-                       console.log({loggingStarted:startupEntry});
-                       console.log({all_epochs:lib.all_epochs,current :lib.currentLogFile.epoch });
-               
+
                        if (typeof cb==="function") cb(false);
                    });
                }
@@ -643,15 +636,13 @@ lib.init = function(cb){
                         console.log(err);
                         if (typeof cb==="function") cb(err);
                     }
-                    console.log("compressed:"+fn);
                     list.splice(0,1);
                     compressOldFiles();
                 });
                
                
            };
-           console.log({vs:{UncompressedLogFileCount:list.length,limit:lib.config.maxUncompressedFileCount}});
-      
+
            compressOldFiles();
 
            
