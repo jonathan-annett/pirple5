@@ -465,7 +465,7 @@ lib.getAllEntries = function (reverse,cb) {
         
         var loop = function (i) {
             if (endLoop(i)) {
-                cb();
+                return;
             } else {
                 lib.getEntries(logs[i].epoch,function(err,entries){
                     cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries ,endLoop(i+delta));
@@ -1201,9 +1201,15 @@ lib.tests = {
     "lib.getAllEntries(cb) does not throw"  : 
     function (done) {
         assert.doesNotThrow(function(){
-            lib.getAllEntries(function(){
-                done();
+            var count = 0;
+            lib.getAllEntries(function(err,entries,isLast){
+                count ++;   
+                
+                if (isLast) {
+                    done;
+                }
             });
+           
         });
     },
     
@@ -1211,18 +1217,30 @@ lib.tests = {
     "lib.getAllEntries(true,cb) does not throw"  : 
     function (done) {
         assert.doesNotThrow(function(){
-            lib.getAllEntries(true,function(){
-                done();
+            var count = 0;
+            lib.getAllEntries(true,function(err,entries,isLast){
+                count ++;   
+                
+                if (isLast) {
+                    done;
+                }
             });
+           
         });
     },
     
     "lib.getAllEntries(false,cb) does not throw"  : 
     function (done) {
         assert.doesNotThrow(function(){
-            lib.getAllEntries(false,function(){
-                done();
+            var count = 0;
+            lib.getAllEntries(false,function(err,entries,isLast){
+                count ++;   
+                
+                if (isLast) {
+                    done;
+                }
             });
+           
         });
     },
     
