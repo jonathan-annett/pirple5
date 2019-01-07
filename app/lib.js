@@ -14,7 +14,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 "use strict";
 /* explode-require the node-libs we need */
-var [ fs, path, zlib, assert ] = "fs,path,zlib,assert".split(",").map(require);
+var _needed =
+    "fs,path,zlib,assert";
+var [fs,path,zlib,assert] = _needed.split(",").map(require);
 
 /* lib is exported */
 var lib = module.exports = {};
