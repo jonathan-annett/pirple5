@@ -375,14 +375,11 @@ var printReport = function(failLimit,testLimit) {
                     console.log(""); 
                 });
             }
-            console.log("");
-            console.log(hr);
-        
+
         });
         console.log("");    
     }
-    
-    console.log(hr);
+
 };
 
 var getTestCount = function() {
