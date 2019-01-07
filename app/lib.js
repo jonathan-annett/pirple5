@@ -624,7 +624,7 @@ lib.init = function(cb){
                        console.log({loggingStarted:startupEntry});
                        console.log({all_epochs:lib.all_epochs,current :lib.currentLogFile.epoch });
                
-                       if (typeof cb==="function") cb();
+                       if (typeof cb==="function") cb(false);
                    });
                }
                
