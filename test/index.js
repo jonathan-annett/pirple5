@@ -577,7 +577,7 @@ _app.run = function(failLimit,testLimit,cb){
                     // asyncronously perform the test
                     runTest(testSet,testSetName,testName, function (){
                         var statsx = _app.setStats[testSetName];
-                        _app.stats.finished =statsx.finished ; 
+                        _app.stats.finished = statsx.finished ; 
                         if ( ( _app.stats.errors.length <= failLimit) && ( _app.stats.count <= testLimit) ) {
                             
                             runTestX(++x);
