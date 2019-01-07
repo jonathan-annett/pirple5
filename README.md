@@ -26,7 +26,7 @@ Intelligent exception trapping in deffered callbacks would not possible either.
 If mutiple async functions simultaneously is really what you are trying to test, it would be better to make that a part of the test function itself - by coding a `function test(done){}` which deliberately fires off mutiple async commands and waits for them to complete before calling done.
 
 
-**the sample [`app/lib.js`](app/test.js)**  
+**the sample [`app/lib.js`](app/lib.js)**  
 
 Again, I went far further than a few simple functions. my main motivation here was the realization that in my previous 4 assignments I had not implemented any serious logging mechanism, mainly as the assignment specs had never mandated one. I'd been intending to write a logging module the moment an assignment asked for one. 
 
