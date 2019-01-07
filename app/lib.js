@@ -346,7 +346,7 @@ lib.compressFile= function(f,cb){
                      fs.stat(after_fn,function(err_after,stat_after){
                          if (!err_after && stat_after && stat_after.mtime) {
                              
-                             fs.unlink(before_fn,function(err){
+                             return fs.unlink(before_fn,function(err){
                                 
                                 if (err) return cb(err);
                                 
@@ -391,7 +391,7 @@ lib.decompressFile= function(f,cb){
             .on('finish', function () {  
                  fs.stat(after_fn,function(err_after,stat_after){
                      if (!err_after && stat_after && stat_after.mtime) {
-                         fs.unlink(before_fn,function(err){
+                         return fs.unlink(before_fn,function(err){
                          
                              if (err) return cb(err);
                              return cb (false,epoch,after_fn,stat_after.mtime.getTime());
