@@ -1209,8 +1209,11 @@ lib.tests = {
     function (done) {
         //assert.doesNotThrow(function(){
             var count = 0;
+            var abort= false;
             lib.getAllEntries(function(err,entries){
+                if (abort) return;
                 if (err===true) {
+                    abort=true;
                     done();
                 }
                 assert.equal(err,false);
