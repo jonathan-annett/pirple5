@@ -792,7 +792,7 @@ lib.tests = {
     },
     
     "lib.epoch_sort_recent_first works as expected" : function (done) {
-        var to_element = function(x){return {t:x,m:"msg"}};
+        var to_element = function(x){return {epoch:x}};
         var input = [ 1,3,8,2,1024,7].map(to_element);
         var expected =  [1024,8,7, 3, 2,1].map(to_element);
         var expected_JSON = JSON.stringify(expected);
@@ -802,7 +802,7 @@ lib.tests = {
     },
     
     "lib.epoch_sort_recent_last works as expected" : function (done) {
-        var to_element = function(x){return {t:x,m:"msg"}};
+        var to_element = function(x){return {epoch:x}};
         var input = [ 1,3,8,2,1024,7].map(to_element);
         var expected =  [1,2,3,7,8,1024 ].map(to_element); 
         var expected_JSON = JSON.stringify(expected);
