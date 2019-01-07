@@ -274,7 +274,7 @@ lib.extendFile = function (f,nextEntry,cb){
                        return cb(errClose);
                    }
                    
-                   return cb(false,fn,nextEntry);
+                   return typeof cb === 'function' ? cb(false,fn,nextEntry) : undefined;
                }); 
             });
         });
