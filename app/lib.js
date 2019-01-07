@@ -1213,7 +1213,7 @@ lib.tests = {
                 
                 count ++;   
                 
-                if (isLast) {
+                if (err || isLast) {
                     done();
                 }
             });
@@ -1229,7 +1229,7 @@ lib.tests = {
             lib.getAllEntries(true,function(err,entries,isLast){
                 count ++;   
                 
-                if (isLast) {
+                if (err || isLast) {
                     done;
                 }
             });
@@ -1244,7 +1244,7 @@ lib.tests = {
             lib.getAllEntries(false,function(err,entries,isLast){
                 count ++;   
                 
-                if (isLast) {
+                if (err || isLast) {
                     done;
                 }
             });
