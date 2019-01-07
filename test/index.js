@@ -52,6 +52,13 @@ _app.colors = {
     cyan : "\x1b[36m",
     white : "\x1b[37m"
 };
+_app.colors.args  = _app.colors.yellow;
+_app.colors.symbol  = _app.colors.yellow;
+_app.colors.property  = _app.colors.magenta;
+_app.colors.error   = _app.colors.red;
+_app.colors.keyword = _app.colors.green;
+_app.colors.reserved = _app.colors.cyan;
+_app.colors.string = _app.colors.yellow;
 
 
 var sourceCodeTestNeeded = function(testName,filename) {
@@ -95,13 +102,6 @@ runTestsIfNeeded = function (testName,rel_path) {
     }
 };
 
-_app.colors.args  = _app.colors.yellow;
-_app.colors.symbol  = _app.colors.red;
-_app.colors.property  = _app.colors.magenta;
-_app.colors.error   = _app.colors.red;
-_app.colors.keyword = _app.colors.green;
-_app.colors.reserved = _app.colors.cyan;
-_app.colors.string = _app.colors.yellow;
 
 var javascript = {
     reserved : "done.assert.abstract.arguments.await.boolean.break.byte.case.catch.char.class.const.continue.debugger.default.delete.do.double.else.enum.eval.export.extends.false.final.finally.float.for.function.goto.if.implements.import.in.instanceof.int.interface.let.long.native.new.null.package.private.protected.public.return.short.static.super.switch.synchronized.this.throw.throws.transient.true.try.typeof.var.void.volatile.while.with.yield".split("."),
@@ -674,8 +674,9 @@ if (selfTestNeeded) {
     console.log(
         _app.colors.magenta+
         "NOTE - the internal 'selfTest' intentionally has multiple fail messages,\n"+
-         "in order to properly test fail reports\n"+
-         "'selfTest' only runs if you have changed "+path.basename(__filename)+
+        "       This is to properly test the fail reporting mechanism.\n"+
+        "       Also, one of the self tests never completes, on purpose.\n"+
+        "       'selfTest' only runs if you have changed "+path.basename(__filename)+
          _app.colors.normal
         
    );
