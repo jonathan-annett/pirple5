@@ -1148,7 +1148,7 @@ lib.tests = {
          lib.extendFile(f,nextEntries,function(err,fn,entries){
             assert.equal(err,false);
             assert.equal(typeof fn,'string');
-            assert.equal(typeof entry,'object');
+            assert.equal(typeof entries,'object');
             JSs.forEach(function(JS,ix) {
                assert.equal(JSON.stringify(entries[ix]),JS);   
             });
