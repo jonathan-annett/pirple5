@@ -1143,27 +1143,31 @@ lib.tests = {
         }
         
         var JSs = nextEntries.map(function(nextEntry){return JSON.stringify(nextEntry)});
-        var f = lib.createFile();
-        
-         lib.extendFile(f,nextEntries,function(err,fn,entries){
+        lib.createFile(function(err,f){
             assert.equal(err,false);
-            assert.equal(typeof fn,'string');
-            assert.equal(typeof entries,'object');
-            assert.equal(entries.length,count);
-            JSs.forEach(function(JS,ix) {
-               assert.equal(JSON.stringify(entries[ix]),JS);   
+            lib.extendFile(f,nextEntries,function(err,fn,entries){
+                assert.equal(err,false);
+                assert.equal(typeof fn,'string');
+                assert.equal(typeof entries,'object');
+                assert.equal(entries.length,count);
+                JSs.forEach(function(JS,ix) {
+                   assert.equal(JSON.stringify(entries[ix]),JS);   
+                });
+                
+                assert.equal(typeof fs.statSync(fn),'object');
+                var data = JSON.parse(fs.readFileSync(fn));
+                assert.equal(typeof data,'object');
+                
+                var ix2=(data.length-count);
+                JSs.forEach(function(JS) {
+                   assert.equal(JSON.stringify(data[ix2++].e),JS);   
+                });
+                done();
             });
             
-            assert.equal(typeof fs.statSync(fn),'object');
-            var data = JSON.parse(fs.readFileSync(fn));
-            assert.equal(typeof data,'object');
-            
-            var ix2=(data.length-count);
-            JSs.forEach(function(JS) {
-               assert.equal(JSON.stringify(data[ix2++].e),JS);   
-            });
-            done();
         });
+        
+         
     },
     
     
