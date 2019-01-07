@@ -656,18 +656,21 @@ lib.log = function ( logEntry, cb ) {
              if ( age_in_hours >  lib.config.maxLogHoursPerFile ) {
                      return newFile();
              }
-            
-            lib.extendFile(lib.currentLogFile.fn,logEntry,function(err,fn,nextEntry){
-                
-                if (err) {
-                    console.log({err:err});
-                    return newFile();
-                }
-                
-                lib.currentLogFile.entries.push(nextEntry);
-                
-                if (typeof cb==="function") return cb(false);   
-            });
+            if (typeof logEntry === 'object') {
+                lib.extendFile(lib.currentLogFile.fn,logEntry,function(err,fn,nextEntry){
+                    
+                    if (err) {
+                        console.log({err:err});
+                        return newFile();
+                    }
+                    
+                    lib.currentLogFile.entries.push(nextEntry);
+                    
+                    if (typeof cb==="function") return cb(false,fn,nextEntry);   
+                });
+            } else {
+                if (typeof cb==="function") return cb(false,lib.currentLogFile.fn);   
+            }
 
         });
     } else {
