@@ -277,7 +277,8 @@ var printReport = function(failLimit,testLimit) {
     console.log("   Test Results");
     console.log(hr);
     console.log("");
-    console.log("      Tests Run:  "+testLimit+" ( limited to "+failLimit+" failures)");
+    console.log("      Tests Run:  "+testLimit );
+    console.log("      Fail Limit: "+failLimit )
     console.log("      Passes:     "+_app.stats.passes);
     console.log("      Failures:   "+_app.stats.errors.length);
     console.log("      Run Time:   "+ String(_app.stats.duration /1000) );
@@ -547,14 +548,13 @@ _app.run = function(failLimit,testLimit,cb){
                         _app.stats.finished =statsx.finished ; 
                         if ( ( _app.stats.errors.length <= failLimit) && ( _app.stats.count <= testLimit) ) {
                             
-                            console.log( 
-                                _app.colors.yellow + testSetName +
-                                  ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
-                                  _app.colors.blue + "("+String(statsx.finished-statsx.started)+" msec)");
-           
-                       
                             runTestX(++x);
                         } else {
+                            console.log( 
+                            _app.colors.yellow + testSetName +
+                              ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
+                              _app.colors.blue + "("+String(statsx.finished-statsx.started)+" msec)");
+       
                             runTestSet(testSetNames.length);
                         }
                     });
