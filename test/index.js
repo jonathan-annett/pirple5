@@ -424,6 +424,6 @@ _app.run = function(failLimit,testLimit){
     printReport(failLimit,testLimit);
 };
 
-_app.tests.lib = require("./app/lib").tests;
+_app.tests.lib = require("../app/lib").tests;
 
 _app.run();
