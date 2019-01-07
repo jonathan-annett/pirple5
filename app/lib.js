@@ -1238,7 +1238,7 @@ lib.tests = {
                    assert.equal(JSON.stringify(data[ix2].e),JS);  
                    assert.equal(data[ix2++].t,timestamp);  
                 });
-                //done();
+                done();
             });
             
         });
@@ -1348,7 +1348,7 @@ lib.tests = {
             assert.equal(typeof fn,'string');
             assert.equal(typeof fs.statSync(fn),'object');
             assert.equal(typeof JSON.parse(fs.readFileSync(fn)),'object'); 
-            //done();
+            done();
         });
     },
     
