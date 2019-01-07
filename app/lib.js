@@ -249,7 +249,7 @@ lib.createFile = function (firstEntry,cb){
     return fn;
 };
 
-//lib.extendFile --> cb(false,fn,nextEntry)
+//lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
 lib.extendFile = function (f,nextEntry,cb){
     var when = Date.now();
     var fn = lib.logFileName(f);
@@ -281,7 +281,7 @@ lib.extendFile = function (f,nextEntry,cb){
     });
     
 };
-
+//lib.arrayExtendFile (f,nextEntries,cb) --> cb (false,fn,nextEntries);
 lib.arrayExtendFile = function (f,nextEntries,cb){
     var when = Date.now();
     var fn = lib.logFileName(f);
@@ -1132,6 +1132,41 @@ lib.tests = {
         });
         
     },
+    
+    "lib.arrayExtendFile(f,nextEntries,cb) calls cb with valid filename pointing to valid JSON file": 
+    function (done) {
+        
+        var count = 2 + Math.floor(Math.random()* 5);
+        var nextEntries =  [];
+        for (var i = 0; i < count ; i ++ ) {
+            nextEntries.push({random:Math.random()});
+        }
+        
+        var JSs = nextEntries.map(function(nextEntry){return JSON.stringify(nextEntry)});
+        var f = lib.currentLogFile.epoch;
+        
+         lib.extendFile(f,nextEntries,function(err,fn,entries){
+            assert.equal(err,false);
+            assert.equal(typeof fn,'string');
+            assert.equal(typeof entry,'object');
+            JSs.forEach(function(JS,ix) {
+               assert.equal(JSON.stringify(entries[ix]),JS);   
+            });
+            
+            assert.equal(typeof fs.statSync(fn),'object');
+            var data = JSON.parse(fs.readFileSync(fn));
+            assert.equal(typeof data,'object');
+            
+            JSs.forEach(function(JS,ix) {
+               assert.equal(JSON.stringify(data[(data.length-count)+ix].e),JS);   
+            });
+            done();
+        });
+    },
+    
+    
+    //lib.arrayExtendFile (f,nextEntries,cb) --> cb (false,fn,nextEntries);
+
     
 };
 
