@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 "use strict";
 /* explode-require the node-libs we need */
-var [ fs, path, zlib ] = "fs,path,zlib".split(",").map(require);
+var [ fs, path, zlib, assert ] = "fs,path,zlib,assert".split(",").map(require);
 
 /* lib is exported */
 var lib = module.exports = {};
@@ -651,7 +651,15 @@ lib.init = function(cb){
 };
 
 
-
+lib.tests = {
+    "lib.init() does not throw" : function (done) {
+        assert.doesNotThrow(function(){
+            
+            lib.init(done);
+            
+        },TypeError);    
+    }   
+};
 
 
 if (process.mainModule===module) lib.init();

@@ -1,8 +1,9 @@
 
-var [assert] = [require("assert")];
+var [assert] = "assert".split(",").map(require);
 
 var _app = module.exports = {};
 
+_app.timeout = 10000;
 
 _app.colors = {
     normal : "\x1b[0m",
@@ -190,16 +191,31 @@ var runTest=function(testSet,testSetName,testName){
         var testFN = testSet[testName];
         testFN.testName = testName;
         testFN.state = "running";
+        // if a test runs away on us and calls done() more than once, 
+        // we need to ignore extra calls, so wwe use a repeatKill flag to detect this
+        var repeatKill=false;
         
-        if (testFN.exception) 
-            delete testFN.exception;
+        // if a  test does not complete after 10 seconds,it can indicate a bug)
+        // so we start a timeout before each test, and nix it when the test completes or fails
+        var doneCompleted = setTimeout(function(){
+            doneCompleted=false;
+            repeatKill = true;
+            onTestFail(testSet,testSetName,testFN,
+                new Error("Test did not complete after "+String(_app.timeout/1000)+" seconds"));
+        },_app.timeout);
+        
+        
         try {
-            // if a test runs away on us and calls done more than once, 
-            // we need to ignore extra calls, so wwe use a repeatKill flag to detect this
-            var repeatKill=false;
+
             testFN.started = Date.now();
             testFN(function(){
                 var stamp = Date.now();
+                
+                if (doneCompleted) {
+                    clearTimeout(doneCompleted);
+                    doneCompleted=false;
+                }
+                
                 if (repeatKill) {
                     // if a test runs away on us and calls done more than once, 
                     // we need to ignore extra calls
@@ -207,10 +223,30 @@ var runTest=function(testSet,testSetName,testName){
                 }
                 testFN.finished = stamp;
                 repeatKill=true;
+                
                 onTestPass(testSet,testSetName,testFN);
+                
             });
         } catch (exception) {
+            
             testFN.finished = Date.now();
+            
+            if (doneCompleted) {
+                clearTimeout(doneCompleted);
+                doneCompleted=false;
+            }
+            
+            if (repeatKill) {
+                // an exception after done() was called is not necessarily
+                console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
+                console.dir({
+                    "Test Set"  : testSetName,
+                    "Test Name" : testName,
+                    "Error"     : exception
+                },{colors:true});
+                return;
+            }
+            
             onTestFail(testSet,testSetName,testFN,exception);
         }
     }
