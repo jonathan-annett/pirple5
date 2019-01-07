@@ -86,18 +86,22 @@ lib.compressedLogFileName=function(f) {
     return path.join(lib.basedir,"log-"+f.toString(36)+".json.gz");
 };
 
+//sort method to pass into array.sort() for an array with element.epoch for each element
 lib.epoch_sort_recent_first = function(a,b){
   if (a.epoch > b.epoch) return -1;
   if (a.epoch < b.epoch) return 1;
   return 0;
 };
 
+//sort method to pass into array.sort() for an array with element.epoch for each element
 lib.epoch_sort_recent_last = function(a,b){
   if (a.epoch > b.epoch) return 1;
   if (a.epoch < b.epoch) return -1;
   return 0;
 };
 
+// lib.createLogListItemGetter() adds a .get method to item 
+// the method that gets added: item.get(cb) --> cb(err,[...],epoch)
 lib.createLogListItemGetter = function(item){
     if (item.compressed) {
         item.get=function(cb){
@@ -139,6 +143,8 @@ lib.createLogListItemGetter = function(item){
     }
 };
 
+// lib.createLogListItem(opt,fn) --> object to place in the list returned by lib.listLogs()
+// does not create any files, just wraps filename in object
 lib.createLogListItem = function (opt,fn) {
 
    var result = null;
@@ -175,7 +181,7 @@ lib.createLogListItem = function (opt,fn) {
        result = {
            epoch : epoch,
            compressed : compressed,
-           fn : path.join(lib.basedir,fn)
+           fn : path.join(lib.basedir,lib.basename(fn))
        };
 
        if ( opt.getter ) {
@@ -212,6 +218,9 @@ lib.listLogs = function(opt,cb){
     });
 };
 
+
+// create a new log file, with an object for the first entry
+//lib.createFile (firstEntry,cb) ---> cb(err,fn,firstEntry) .... fn is the filename for future writes
 lib.createFile = function (firstEntry,cb){
     var when = Date.now();
     var fn = lib.logFileName(when);
@@ -522,7 +531,7 @@ lib.log = function ( logEntry, cb ) {
                 delete lib.currentLogFile;
             }
             
-            lib.currentLogFile  = lib.createLogListItem({getter:true},path.basename(fn));
+            lib.currentLogFile  = lib.createLogListItem({getter:true},fn);
             lib.all_epochs.push(lib.currentLogFile.epoch);
             if (typeof logEntry === 'object') {
     
@@ -655,7 +664,8 @@ lib.init = function(cb){
 
 lib.tests = {
 
-    "lib.init() does not throw" : function (done) {
+    "lib.init() does not throw" : 
+    function (done) {
         assert.doesNotThrow(function(){
             lib.init(function (err){
                 assert.equal(err,false);
@@ -664,21 +674,24 @@ lib.tests = {
         },TypeError);    
     },
     
-    "lib.basedir created ok after lib.init()" : function (done) {
+    "lib.basedir created ok after lib.init()" : 
+    function (done) {
         var stat = fs.statSync(lib.basedir);
         assert.ok(stat && stat.isDirectory());
         done();
     },  
     
     
-    "lib.logFileName(1223) returns a string": function (done) {
+    "lib.logFileName(1223) returns a string": 
+    function (done) {
         var value = lib.logFileName(1223);
         assert.equal(typeof value,"string");
         done();
     },  
     
     
-    "lib.logFileName(new Date()) returns a string": function (done) {
+    "lib.logFileName(new Date()) returns a string": 
+    function (done) {
         var value = lib.logFileName(new Date());
         assert.equal(typeof value,"string");
         done();
@@ -686,52 +699,60 @@ lib.tests = {
     
     
     
-    "lib.logFileName(previousFilename) returns same filename": function (done) {
+    "lib.logFileName(previousFilename) returns same filename": 
+    function (done) {
         var previousFilename = lib.logFileName(new Date());
         var value = lib.logFileName(previousFilename);
         assert.equal(value,previousFilename);
         done();
     },
     
-    "lib.logFileName(new Date()) returns a filename under basedir": function (done) {
+    "lib.logFileName(new Date()) returns a filename under basedir": 
+    function (done) {
         var value = lib.logFileName(new Date());
         assert.equal(path.dirname(value),lib.basedir);
         done();
     },
     
-    "lib.logFileName(new Date()) returns a .json filename": function (done) {
+    "lib.logFileName(new Date()) returns a .json filename": 
+    function (done) {
         var value = lib.logFileName(new Date());
         assert.equal(path.extname(value),".json");
         done();
     },
     
-    "lib.logFileEpoch(1223) returns a number": function (done) {
+    "lib.logFileEpoch(1223) returns a number": 
+    function (done) {
         var value = lib.logFileEpoch(1223);
         assert.equal(typeof value,"number");
         done();
     },  
     
-    "lib.logFileEpoch(1223) returns 1223": function (done) {
+    "lib.logFileEpoch(1223) returns 1223": 
+    function (done) {
         var value = lib.logFileEpoch(1223);
         assert.equal(value,1223);
         done();
     }, 
     
-    "lib.logFileEpoch(new Date()) returns a number": function (done) {
+    "lib.logFileEpoch(new Date()) returns a number": 
+    function (done) {
         var value = lib.logFileEpoch(new Date());
         assert.equal(typeof value,"number");
         done();
     },  
     
     
-    "lib.logFileEpoch(aDate) returns aDate.getTime()": function (done) {
+    "lib.logFileEpoch(aDate) returns aDate.getTime()": 
+    function (done) {
         var aDate = new Date();
         var value = lib.logFileEpoch(aDate);
         assert.equal(value,aDate.getTime());
         done();
     }, 
     
-    "lib.logFileEpoch(aDate.getTime()) returns aDate.getTime()": function (done) {
+    "lib.logFileEpoch(aDate.getTime()) returns aDate.getTime()": 
+    function (done) {
         var aDate = new Date();
         var value = lib.logFileEpoch(aDate.getTime());
         assert.equal(value,aDate.getTime());
@@ -739,7 +760,8 @@ lib.tests = {
     },  
     
     
-    "lib.logFileEpoch(previousFilename) returns a number": function (done) {
+    "lib.logFileEpoch(previousFilename) returns a number": 
+    function (done) {
         var previousFilename = lib.logFileName(new Date());
         var value = lib.logFileEpoch(previousFilename);
         assert.equal(typeof value,"number");
@@ -747,7 +769,8 @@ lib.tests = {
     },
     
     
-    "lib.logFileEpoch(previousFilename) returns epoch of previousFilename": function (done) {
+    "lib.logFileEpoch(previousFilename) returns epoch of previousFilename": 
+    function (done) {
         var epoch = Date.now();
         var previousFilename = lib.logFileName(epoch);
         var value = lib.logFileEpoch(previousFilename);
@@ -756,14 +779,16 @@ lib.tests = {
     },
     
     
-    "lib.compressedL`ogFileName(1223) returns a string": function (done) {
+    "lib.compressedL`ogFileName(1223) returns a string": 
+    function (done) {
         var value = lib.compressedLogFileName(1223);
         assert.equal(typeof value,"string");
         done();
     },  
     
     
-    "lib.compressedLogFileName(new Date()) returns a string": function (done) {
+    "lib.compressedLogFileName(new Date()) returns a string": 
+    function (done) {
         var value = lib.compressedLogFileName(new Date());
         assert.equal(typeof value,"string");
         done();
@@ -771,27 +796,31 @@ lib.tests = {
     
     
     
-    "lib.compressedLogFileName(previousFilename) returns same filename": function (done) {
+    "lib.compressedLogFileName(previousFilename) returns same filename": 
+    function (done) {
         var previousFilename = lib.compressedLogFileName(new Date());
         var value = lib.compressedLogFileName(previousFilename);
         assert.equal(value,previousFilename);
         done();
     },
     
-    "lib.compressedLogFileName(new Date()) returns a filename under basedir": function (done) {
+    "lib.compressedLogFileName(new Date()) returns a filename under basedir": 
+    function (done) {
         var value = lib.compressedLogFileName(new Date());
         assert.equal(path.dirname(value),lib.basedir);
         done();
     },
     
-    "lib.compressedLogFileName(new Date()) returns a .json.gz filename": function (done) {
+    "lib.compressedLogFileName(new Date()) returns a .json.gz filename": 
+    function (done) {
         var value = lib.compressedLogFileName(new Date());
         var suffix = ".json.gz";
         assert.equal(value.substr(0-suffix.length),suffix);
         done();
     },
 
-    "lib.epoch_sort_recent_first works as expected" : function (done) {
+    "lib.epoch_sort_recent_first works as expected" : 
+    function (done) {
         var to_element = function(x){return {epoch:x}};
         var input = [ 1,3,8,2,1024,7].map(to_element);
         var expected =  [1024,8,7, 3, 2,1].map(to_element);
@@ -801,7 +830,8 @@ lib.tests = {
         done();
     },
     
-    "lib.epoch_sort_recent_last works as expected" : function (done) {
+    "lib.epoch_sort_recent_last works as expected" : 
+    function (done) {
         var to_element = function(x){return {epoch:x}};
         var input = [ 1,3,8,2,1024,7].map(to_element);
         var expected =  [1,2,3,7,8,1024 ].map(to_element); 
@@ -811,7 +841,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem(fn) does not throw" : function (done) {
+    "lib.createLogListItem(fn) does not throw" : 
+    function (done) {
        assert.doesNotThrow(function(){
             var fn = lib.logFileName(Date.now());
             lib.createLogListItem (fn);
@@ -819,7 +850,8 @@ lib.tests = {
        },TypeError);    
     },
     
-    "lib.createLogListItem({},fn) creates an object" : function (done) {
+    "lib.createLogListItem({},fn) creates an object" : 
+    function (done) {
         var fn = lib.logFileName(Date.now());
         var value = lib.createLogListItem ({},fn);
         assert.equal(typeof value,'object');
@@ -827,7 +859,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({},fn_gz) does not create an object" : function (done) {
+    "lib.createLogListItem({},fn_gz) does not create an object" : 
+    function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
         var value = lib.createLogListItem ({},fn_gz);
         assert.equal(typeof value,'object');
@@ -835,7 +868,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({compressed:true},fn_gz) creates an object" : function (done) {
+    "lib.createLogListItem({compressed:true},fn_gz) creates an object" : 
+    function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
         var value = lib.createLogListItem ({compressed:true},fn_gz);
         assert.equal(typeof value,'object');
@@ -843,7 +877,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({compressed:true},fn) does not create an object" : function (done) {
+    "lib.createLogListItem({compressed:true},fn) does not create an object" : 
+    function (done) {
         var fn = lib.logFileName(Date.now());
         var value = lib.createLogListItem ({compressed:true},fn);
         assert.equal(typeof value,'object');
@@ -851,7 +886,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({all:true},fn_gz) creates an object" : function (done) {
+    "lib.createLogListItem({all:true},fn_gz) creates an object" : 
+    function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
         var value = lib.createLogListItem ({all:true},fn_gz);
         assert.equal(typeof value,'object');
@@ -860,7 +896,8 @@ lib.tests = {
     },
     
     
-    "lib.createLogListItem({},fn) creates an object without .get() method" : function (done) {
+    "lib.createLogListItem({},fn) creates an object without .get() method" : 
+    function (done) {
         var fn = lib.logFileName(Date.now());
         var value = lib.createLogListItem ({},fn);
         assert.equal(typeof value,'object');
@@ -869,7 +906,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({getter:true},fn) creates an object with .get() method" : function (done) {
+    "lib.createLogListItem({getter:true},fn) creates an object with .get() method" : 
+    function (done) {
         var fn = lib.logFileName(Date.now());
         var value = lib.createLogListItem ({getter:true},fn);
         assert.equal(typeof value,'object');
@@ -878,7 +916,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({all:true,getter:true},fn) creates an object with .get() method" : function (done) {
+    "lib.createLogListItem({all:true,getter:true},fn) creates an object with .get() method" : 
+    function (done) {
         var fn = lib.logFileName(Date.now());
         var value = lib.createLogListItem ({all:true,getter:true},fn);
         assert.equal(typeof value,'object');
@@ -887,7 +926,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({compressed:true,getter:true},fn_gz) creates an object with .get() method" : function (done) {
+    "lib.createLogListItem({compressed:true,getter:true},fn_gz) creates an object with .get() method" : 
+    function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
         var value = lib.createLogListItem ({compressed:true,getter:true},fn_gz);
         assert.equal(typeof value,'object');
@@ -896,7 +936,8 @@ lib.tests = {
         done();
     },
     
-    "lib.createLogListItem({all:true,getter:true},fn_gz) creates an object with .get() method" : function (done) {
+    "lib.createLogListItem({all:true,getter:true},fn_gz) creates an object with .get() method" : 
+    function (done) {
         var fn_gz = lib.compressedLogFileName(Date.now());
         var value = lib.createLogListItem ({all:true,getter:true},fn_gz);
         assert.equal(typeof value,'object');
@@ -905,7 +946,8 @@ lib.tests = {
         done();
     },
     
-    "lib.listLogs({},cb) returns an array" : function (done) {
+    "lib.listLogs({},cb) returns an array" : 
+    function (done) {
         lib.listLogs({},function(files){
             assert.equal(typeof files,"object");
             assert.equal(files.constructor,Array);
@@ -914,7 +956,8 @@ lib.tests = {
     },
     
     
-    "lib.listLogs({},cb) returns an array of valid log file objects" : function (done) {
+    "lib.listLogs({},cb) returns an array of valid log file objects" : 
+    function (done) {
         lib.listLogs({},function(files){
             files.forEach(function(file){
                 assert.equal(typeof file,"object");
@@ -929,6 +972,22 @@ lib.tests = {
             });
         });
         done();
+    },
+    
+    "lib.createFile(firstEntry,cb) calls cb with a string filename that points to valid JSON file":
+    function (done) {
+          var firstEntry = {hello:"world"};
+          var JS = JSON.stringify(firstEntry);
+          lib.createFile(firstEntry,function(err,fn,entry){
+              assert.equal(err,false);
+              assert.equal(typeof fn,'string');
+              assert.equal(typeof entry,'object');
+              assert.equal(JSON.stringify(entry),JS);
+              assert.equal(typeof fs.statSync(fn),'object');
+              var data = JSON.parse(fs.readFileSync(fn));
+              assert.equal(typeof data,'object');
+              assert.equal(JSON.stringify(data[0].m),JS);
+          });
     },
     
 };
