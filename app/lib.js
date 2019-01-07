@@ -86,6 +86,18 @@ lib.compressedLogFileName=function(f) {
     return path.join(lib.basedir,"log-"+f.toString(36)+".json.gz");
 };
 
+lib.epoch_sort_recent_first = function(a,b){
+  if (a.epoch > b.epoch) return -1;
+  if (a.epoch < b.epoch) return 1;
+  return 0;
+};
+
+lib.epoch_sort_recent_last = function(a,b){
+  if (a.epoch > b.epoch) return 1;
+  if (a.epoch < b.epoch) return -1;
+  return 0;
+};
+
 lib.createLogListItemGetter = function(item){
     if (item.compressed) {
         item.get=function(cb){
@@ -166,17 +178,6 @@ lib.createLogListItem = function (opt,fn) {
 
 };
 
-lib.epoch_sort_recent_first = function(a,b){
-  if (a.epoch > b.epoch) return -1;
-  if (a.epoch < b.epoch) return 1;
-  return 0;
-};
-
-lib.epoch_sort_recent_last = function(a,b){
-  if (a.epoch > b.epoch) return 1;
-  if (a.epoch < b.epoch) return -1;
-  return 0;
-};
    
 lib.listLogs = function(opt,cb){
     if (typeof opt === 'function') {
@@ -790,6 +791,25 @@ lib.tests = {
         done();
     },
     
+    "lib.epoch_sort_recent_first works as expected" : function (done) {
+        
+        var input = [ 1,3,8,2,1024,7];
+        var expected =  [1024,8,7, 3, 2,1];
+        var expected_JSON = JSON.stringify(expected);
+        var value = JSON.stringify(input.sort(lib.epoch_sort_recent_last));
+        assert.equal(value,expected_JSON);
+        done();
+    },
+    
+    "lib.epoch_sort_recent_last works as expected" : function (done) {
+        
+        var input = [ 1,3,8,2,1024,7];
+        var expected =  [1,2,3,7,8,1024 ]; 
+        var expected_JSON = JSON.stringify(expected);
+        var value = JSON.stringify(input.sort(lib.epoch_sort_recent_last));
+        assert.equal(value,expected_JSON);
+        done();
+    }
     
 };
 
