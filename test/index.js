@@ -1,7 +1,17 @@
 /*
 
-this is a log file manager.
+ Homework Assignment #5
 
+ asynchonrous test scaffolding
+ 
+  - allows full end to end testing of complex functions that happen asynchronously
+  - each test is run in the order defined, after the previous test has passed or failed
+  - tests that don't call done() after 10 seconds are abandonded as failed
+  - tests that call done more than once are ignored, and the repeat call is logged.
+  - exceptions that happen out of the scope of the test function are trapped and logged
+  - the source code of the test function is printed in the error message for failed tests
+  - the best guess at source code file line and number is made by walking the error.stack array in any messages
+  
 
 */
 
@@ -421,7 +431,7 @@ var printReport = function(failLimit,testLimit) {
     console.log("   Test Results");
     console.log(hr);
     console.log("");
-    console.log("      Tests Run: "+testLimit+" ( limited to "+failLimit+" failures)");
+    console.log("      Tests Run:  "+testLimit+" ( limited to "+failLimit+" failures)");
     console.log("      Passes:     "+_app.stats.passes);
     console.log("      Failures:   "+_app.stats.errors.length);
     console.log("      Run Time:   "+ String(_app.stats.duration /1000) );
@@ -530,7 +540,7 @@ _app.run = function(failLimit,testLimit,cb){
             
             runTestX(0);
 
-            _app.setStats[testSetName].finished = lastFinish; 
+            _app.setStats[testSetName].finished = lastSetFinish = lastFinish; 
             
         }
         
