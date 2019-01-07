@@ -253,18 +253,18 @@ lib.createFile = function (firstEntry,cb){
 lib.extendFile = function (f,nextEntry,cb){
     var when = Date.now();
     var fn = lib.logFileName(f);
-    if (fn===false) return cb(new Error("invalid log filename"));
+    if (fn===false) return typeof cb === 'function' ?   cb(new Error("invalid log filename")) : undefined;
     if (typeof nextEntry!=='object') {
-         cb(new Error("invalid log Entry"));       
+        typeof cb === 'function' ?  cb(new Error("invalid log Entry")) : undefined;       
     }
     
     // make a buffer we will use to extend the file, which omits the opening [
     var buffer = new Buffer(",\n"+(JSON.stringify([{t:when,e:nextEntry}]).substr(1)));
     
     fs.stat(fn,function(err,stats){
-        if (err||!stats) return cb(err);
+        if (err||!stats) return typeof cb === 'function' ? cb(err) : err;
         fs.open(fn,'r+',function(err,fd){
-            if (err||!fd) return cb(err);
+            if (err||!fd) return typeof cb === 'function' ? cb(err) : err;
             fs.write(fd,buffer,/*buffer offset*/0,buffer.length,/*file offset*/stats.size-1,function(errWrite){
                 fs.close(fd,function(errClose){
                    if (errWrite) {
