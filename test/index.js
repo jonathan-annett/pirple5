@@ -356,7 +356,7 @@ var clearTestSetStats = function(testSetName){
     Object.keys(testSet).forEach(function(testName,ix){
         var testFN = testSet[testName];
         testFN.state="not run";
-        testFN.index = ix;
+        testFN.index = ix+1;
         delete testFN.exception;
         delete testFN.started;
         delete testFN.finished;
