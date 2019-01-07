@@ -606,7 +606,6 @@ _app.setStats = {};
 
 
 var sourceCodeTestNeeded = function(filename) {
-    console.log(_app.colors.blue + "checking "+filename+_app.colors.normal);
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
     sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
@@ -616,7 +615,10 @@ var sourceCodeTestNeeded = function(filename) {
         testNeeded = ( sha256sum !== selfTestStats.sha256sum);
     }
     if (testNeeded) {
+        console.log(_app.colors.red + sha256sum +" "+filename+" changed since last test"+_app.colors.normal);
         fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
+    } else {
+        console.log(_app.colors.green + sha256sum +" "+filename+" unchanged since last test"+_app.colors.normal);
     }
     return testNeeded;
 },
