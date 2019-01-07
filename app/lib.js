@@ -1139,7 +1139,7 @@ lib.tests = {
         var count = 2 + Math.floor(Math.random()* 5);
         var nextEntries =  [];
         for (var i = 0; i < count ; i ++ ) {
-            nextEntries.push({random:Math.random()});
+            nextEntries.push({random:Math.random(),i:i});
         }
         
         var JSs = nextEntries.map(function(nextEntry){return JSON.stringify(nextEntry)});
