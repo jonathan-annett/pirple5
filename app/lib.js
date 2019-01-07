@@ -666,7 +666,7 @@ lib.log = function ( logEntry, cb ) {
                 
                 lib.currentLogFile.entries.push(nextEntry);
                 
-                if (typeof cb==="function") return cb();   
+                if (typeof cb==="function") return cb(false);   
             });
 
         });
