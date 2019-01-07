@@ -624,7 +624,7 @@ var sourceCodeTestNeeded = function(testName,filename) {
     }
     
     var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
-    _app.setStatJSON[testName]={fn:filename,sha256sum:sha256sum};
+    _app.setStatJSON[testName]={fn:testStatsFn,sha256sum:sha256sum};
     
     if (testNeeded) {
         console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
