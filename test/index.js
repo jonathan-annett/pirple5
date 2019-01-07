@@ -562,7 +562,7 @@ _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
 
-
+/*
 _app.tests.selfTest = {
     
     "always passes" : function (done) {
@@ -578,7 +578,7 @@ _app.tests.selfTest = {
 
     },
 } ;
- 
+ */
 _app.tests.lib = require("../app/lib").tests;
 
 _app.run();
