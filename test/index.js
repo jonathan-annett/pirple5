@@ -668,8 +668,12 @@ if (selfTestNeeded) {
         },
     } ;
 }
- 
-runTestsIfNeeded ("lib","../app/lib");
+
+(function (testPaths) {
+    Object.keys(testPaths).forEach(function(testSetName){
+        runTestsIfNeeded (testSetName,testPaths[testSetName]);
+    });
+})(JSON.parse(fs.readFileSync(path.join(path.dirname(__filename),"tests.json"))));
 
 if (selfTestNeeded) {
     console.log(
