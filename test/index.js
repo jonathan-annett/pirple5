@@ -441,11 +441,17 @@ var printReport = function(failLimit,testLimit) {
                     console.log("          Error:");
                     indentStr(String(failedTestFN.exception),16);
                     var line="?",lines = failedTestFN.exception.stack.split("\n");
-                    while (lines && line && (line.trim().substr(0,3)!=="at ")  && isNodeJs(line) ) {
+                    while (lines && line && line.trim().substr(0,3)!=="at " ) {
                         line = lines.shift();
                     }
-                    if (line)
-                    console.log("          code    :   "+line.trim());
+                    
+                    while (lines && line && line.trim().substr(0,3)!=="at " && isNodeJs(line)) {
+                          line = lines.shift();
+                    }
+                    
+                    if (line) {
+                        console.log("          code    :   "+line.trim());
+                    }
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
                     indentStr(javascript.colorize(failedTestFN.toString()),16);
