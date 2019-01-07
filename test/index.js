@@ -582,6 +582,7 @@ _app.run = function(failLimit,testLimit,cb){
                             
                             runTestX(++x);
                         } else {
+                            statsx.started =  testSet[ testNames[0] ].started;
                             console.log( 
                             _app.colors.yellow + testSetName +
                               ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
