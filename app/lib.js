@@ -588,6 +588,7 @@ lib.getLogNextEntries = function ( entries, cb  ) {
 
 lib.currentLogFile = false;
 
+//lib.log  ( logEntry, cb )  --> cb(false,fn,nextEntry);
 lib.log = function ( logEntry, cb ) { 
     
     if (typeof logEntry === 'function') {
@@ -621,12 +622,12 @@ lib.log = function ( logEntry, cb ) {
                         return console.log({err:err});
                     }
                     lib.currentLogFile.entries = [nextEntry];
-                    if (typeof cb==="function") cb(undefined,fn,nextEntry);  
+                    if (typeof cb==="function") cb(false,fn,nextEntry);  
                 });
             
             } else {
                 lib.currentLogFile.entries = [];
-                if (typeof cb==="function") cb(undefined,fn);   
+                if (typeof cb==="function") cb(false,fn);   
                 
             }
         });
@@ -740,7 +741,6 @@ lib.init = function(cb){
         
     });
 };
-
 
 lib.tests = {
 
@@ -1256,14 +1256,14 @@ lib.tests = {
                 assert.equal(err,false);
                 assert.equal(typeof entries,"object");
                 
-                var last;
+                var prev=entries[0].t;
                 entries.forEach(function(el) {
                     assert.equal(typeof el,"object");
                     assert.equal(typeof el.t,"number");
                     assert.equal(typeof el.e,"object");
                     assert.equal(Object.keys(el).length,2);
-                    assert.ok(!last || (el.t>=last) );
-                    last=el.t;
+                    assert.ok( el.t>=prev );
+                    prev=el.t;
                 });
                 
                 count ++;
@@ -1284,14 +1284,14 @@ lib.tests = {
                  assert.equal(err,false);
                  assert.equal(typeof entries,"object");
                  
-                 var last;
+                 var prev=entries[0].t;
                  entries.forEach(function(el) {
                      assert.equal(typeof el,"object");
                      assert.equal(typeof el.t,"number");
                      assert.equal(typeof el.e,"object");
                      assert.equal(Object.keys(el).length,2);
-                     assert.ok(!last || (el.t>=last) );
-                     last=el.t;
+                     assert.ok( el.t>=prev );
+                     prev=el.t;
                  });
                  
                  count ++;
@@ -1313,19 +1313,38 @@ lib.tests = {
                    assert.equal(err,false);
                    assert.equal(typeof entries,"object");
                    
-                   var last;
+                   var prev=entries[0].t;
                    entries.forEach(function(el) {
                        assert.equal(typeof el,"object");
                        assert.equal(typeof el.t,"number");
                        assert.equal(typeof el.e,"object");
                        assert.equal(Object.keys(el).length,2);
-                       assert.ok(!last || (el.t<=last) );
-                       last=el.t;
+                       assert.ok( el.t<=prev );
+                       prev=el.t;
                    });
                    
                    count ++;
                    
                });
+    },
+    
+    
+    "lib.log({message:'hello'}) does not throw":
+    function(done) {
+        assert.doesNotThrow(function(){
+            lib.log({message:'hello'});
+            done();
+        });
+    },
+    
+    "lib.log({message:'hello'},cb) calls cb correctly":
+    function(done) {
+        lib.log({message:'hello'},function(err,fn,nextEntry){
+            assert.equal(err,false);
+            assert.equal(typeof fn,'string');
+            assert.equal(typeof fs.statSync(fn),'object');
+            assert.equal(typeof JSON.parse(fs.readFileSync(fn)),'object');
+        });
     },
     
  
