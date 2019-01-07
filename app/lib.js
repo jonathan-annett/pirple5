@@ -468,6 +468,7 @@ lib.getAllEntries = function (reverse,cb) {
                 if (endLoop(i)) {
                     return cb(true);
                 } else {
+                    
                     lib.getEntries(logs[i].epoch,function(err,entries){
                         if (err) return cb(err);
                         
@@ -1211,7 +1212,6 @@ lib.tests = {
             var count = 0;
             var abort= false;
             lib.getAllEntries(function(err,entries){
-                if (abort) return;
                 if (err===true) {
                     abort=true;
                     done();
