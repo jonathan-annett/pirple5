@@ -264,15 +264,14 @@ var printReport = function(failLimit,testLimit) {
     collateStats(_app.stats);
     
     testSetNames.forEach(function(testSetName){
-        var stats = _app.setStats[testSetName];
         
-        collateStats(stats);
+        collateStats(_app.setStats[testSetName]);
         
         var testSet = _app.tests[testSetName];
-        var testNames = Object.keys(testSet);
         
-        testNames.forEach(function(testSetName){
-            collateStats(_app.setStats[testSetName]);
+        var testNames = Object.keys(testSet);
+        testNames.forEach(function(testName){
+            collateStats(testSet[testName]);
         });
         
     });
