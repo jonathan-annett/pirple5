@@ -403,7 +403,9 @@ _app.run = function(failLimit,testLimit,cb){
         if (i>= testSetNames.length) {
             _app.stats.finished = lastSetFinish; 
             printReport(failLimit,testLimit);
-            cb();
+            if (typeof cb==='function') {
+                cb();
+            }
         } else {
             var testSetName = testSetNames[i],
             testSet = _app.tests[testSetName];
