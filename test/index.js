@@ -622,7 +622,7 @@ var sourceCodeTestNeeded = function(filename) {
 },
 selfTestNeeded = sourceCodeTestNeeded(__filename),
 runTestsIfNeeded = function (testName,rel_path) {
-    if (sourceCodeTestNeeded(path.join(path.dirname(__filename),rel_path,"index.js"))) {
+    if (sourceCodeTestNeeded(path.join(path.dirname(__filename),rel_path+".js"))) {
         _app.tests[testName] =  require(rel_path).tests;
     }
 };
