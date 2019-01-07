@@ -1238,57 +1238,94 @@ lib.tests = {
          
     },
     
-    "lib.getAllEntries(cb) does not throw"  : 
+    "lib.getAllEntries(cb) returns messages in timestamp order"  : 
     function (done) {
-        //assert.doesNotThrow(function(){
+         
             var count = 0;
             var abort= false;
+            
             lib.getAllEntries(function(err,entries){
+                
                 if (err===true) {
-                    abort=true;
+                    abort = true;
                     return  done();
                 }
+                var last;
+                entries.forEach(function(el) {
+                    assert.equal(typeof el,"object");
+                    assert.equal(typeof el.t,"number");
+                    assert.equal(typeof el.e,"object");
+                    assert.equal(Object.keys(el).length,2);
+                    assert.ok(el.t>=last);
+                    last=el.t;
+                });
+                
                 assert.equal(err,false);
                 assert.equal(typeof entries,"object");
-                count ++;   
+                count ++;
+                
             });
-           
-        //});
     },
      
-    /*
-    
-    "lib.getAllEntries(true,cb) does not throw"  : 
+    "lib.getAllEntries(false,cb) returns messages in timestamp order"  : 
     function (done) {
-        assert.doesNotThrow(function(){
+         
             var count = 0;
-            lib.getAllEntries(true,function(err,entries){
-               if (err===true) {
-                   done();
-               }
-               assert.equal(err,false);
-               count ++;   
-           });
-
-        });
-    },
-    
-    "lib.getAllEntries(false,cb) does not throw"  : 
-    function (done) {
-        assert.doesNotThrow(function(){
-            var count = 0;
+            var abort= false;
+            
             lib.getAllEntries(false,function(err,entries){
+                
                 if (err===true) {
-                    done();
+                    abort = true;
+                    return  done();
                 }
+                var last;
+                entries.forEach(function(el) {
+                    assert.equal(typeof el,"object");
+                    assert.equal(typeof el.t,"number");
+                    assert.equal(typeof el.e,"object");
+                    assert.equal(Object.keys(el).length,2);
+                    assert.ok(el.t>=last);
+                    last=el.t;
+                });
+                
                 assert.equal(err,false);
-                count ++;   
+                assert.equal(typeof entries,"object");
+                count ++;
+                
             });
-
-        });
     },
     
-   */
+    "lib.getAllEntries(true,cb) returns messages in reverse timestamp order"  : 
+    function (done) {
+         
+            var count = 0;
+            var abort= false;
+            
+            lib.getAllEntries(true,function(err,entries){
+                
+                if (err===true) {
+                    abort = true;
+                    return  done();
+                }
+                var last;
+                entries.forEach(function(el) {
+                    assert.equal(typeof el,"object");
+                    assert.equal(typeof el.t,"number");
+                    assert.equal(typeof el.e,"object");
+                    assert.equal(Object.keys(el).length,2);
+                    assert.ok(el.t>=last);
+                    last=el.t;
+                });
+                
+                assert.equal(err,false);
+                assert.equal(typeof entries,"object");
+                count ++;
+                
+            });
+    },
+    
+ 
 
     
 };
