@@ -615,8 +615,8 @@ if (!selfTestNeeded) {
     selfTestNeeded = ( sha256sum !== selfTestStats.sha256sum);
 }
 
- if (selfTestNeeded) {
-     
+if (selfTestNeeded) {
+     console.log(_app.colors.red+ path.basename(__filename)+" has changed, running self tests"+_app.colors.normal);
      fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
      
     _app.tests.selfTest = {
