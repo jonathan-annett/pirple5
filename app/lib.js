@@ -1258,7 +1258,7 @@ lib.tests = {
                     assert.equal(typeof el.t,"number");
                     assert.equal(typeof el.e,"object");
                     assert.equal(Object.keys(el).length,2);
-                    assert.ok(el.t>=last);
+                    assert.ok(!last || (el.t>=last) );
                     last=el.t;
                 });
                 
