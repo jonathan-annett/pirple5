@@ -216,12 +216,13 @@ var runTest=function(testSet,testSetName,testName,done){
                 },{colors:true});
                 return;
             }
-            process.removeListener('uncaughtException',global_trap);
+            
             onTestFail(testSet,testSetName,testFN,exception,done);
         };
         
         global_trap = function (exception) {
                 testFN.finished = Date.now();
+                process.removeListener('uncaughtException',global_trap);
                 err_callback(exception);
         };
         
@@ -252,6 +253,7 @@ var runTest=function(testSet,testSetName,testName,done){
             });
         } catch (exception) {
             testFN.finished = Date.now();
+            process.removeListener('uncaughtException',global_trap);
             err_callback(exception);
         }
         
