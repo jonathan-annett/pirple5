@@ -986,7 +986,8 @@ lib.tests = {
               assert.equal(typeof fs.statSync(fn),'object');
               var data = JSON.parse(fs.readFileSync(fn));
               assert.equal(typeof data,'object');
-              assert.equal(JSON.stringify(data[0].m),JS);
+              assert.equal(JSON.stringify(data[0].e),JS);
+              done();
           });
     },
     
