@@ -591,10 +591,13 @@ _app.run = function(failLimit,testLimit,cb){
             
             printReport(failLimit,testLimit);
             
+            // save the source code version file
             testSetNames.forEach(function(testSetName){
                  var sha256Info     = _app.setStatJSON[testSetName];
+                 var versionFile = sha256Info.fn;
                  sha256Info.results = _app.setStats[testSetName];
-                 fs.writeFileSync(sha256Info.fn,JSON.stringify(sha256Info));
+                 delete sha256Info.fn;
+                 fs.writeFileSync(versionFile,JSON.stringify(sha256Info));
             });
             
             if (typeof cb==='function') {
