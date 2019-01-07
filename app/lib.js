@@ -1149,6 +1149,7 @@ lib.tests = {
             assert.equal(err,false);
             assert.equal(typeof fn,'string');
             assert.equal(typeof entries,'object');
+            assert.equal(entries.length,count);
             JSs.forEach(function(JS,ix) {
                assert.equal(JSON.stringify(entries[ix]),JS);   
             });
@@ -1157,8 +1158,9 @@ lib.tests = {
             var data = JSON.parse(fs.readFileSync(fn));
             assert.equal(typeof data,'object');
             
-            JSs.forEach(function(JS,ix) {
-               assert.equal(JSON.stringify(data[(data.length-count)+ix].e),JS);   
+            var ix2=data.length-count;
+            JSs.forEach(function(JS) {
+               assert.equal(JSON.stringify(data[ix2++].e),JS);   
             });
             done();
         });
