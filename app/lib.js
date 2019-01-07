@@ -1159,8 +1159,10 @@ lib.tests = {
                 assert.equal(typeof data,'object');
                 
                 var ix2=(data.length-count);
+                var timestamp = data[ix2].t;
                 JSs.forEach(function(JS) {
-                   assert.equal(JSON.stringify(data[ix2++].e),JS);   
+                   assert.equal(JSON.stringify(data[ix2++].e),JS);  
+                   assert.equal(data[ix2++].t,timestamp);  
                 });
                 done();
             });
