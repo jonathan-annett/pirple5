@@ -54,6 +54,47 @@ _app.colors = {
 };
 
 
+var sourceCodeTestNeeded = function(testName,filename) {
+    var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
+    testNeeded = !fs.existsSync(testStatsFn),
+    sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
+    var lastFail=false;
+    if (!testNeeded) {
+        var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
+        testNeeded = ( sha256sum !== selfTestStats.sha256sum);
+        if (!selfTestStats.results || selfTestStats.results.errors.length>0) {
+            lastFail = true;
+        }
+    }
+    
+    var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
+    _app.setStatJSON[testName]={fn:testStatsFn,sha256sum:sha256sum};
+    
+    if (process.argv.indexOf("--all")>=0 ) {
+        console.log(_app.colors.yellow + sha256sum +" testing "+_app.colors.red + dispname+"  ( --all switch ) "+_app.colors.normal);
+        testNeeded = true;
+    } else {
+    
+        if (testNeeded) {
+            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
+        } else {
+            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
+            if (lastFail && testName!=="selfTest") {
+                testNeeded = true;
+                console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red +dispname+" failed on last test"+_app.colors.normal);
+            }
+            
+        }
+    }
+    return testNeeded;
+},
+selfTestNeeded = sourceCodeTestNeeded("selfTest",__filename),
+runTestsIfNeeded = function (testName,rel_path) {
+    if (sourceCodeTestNeeded(testName,path.join(path.dirname(__filename),rel_path+".js"))) {
+        _app.tests[testName] =  require(rel_path).tests;
+    }
+};
+
 _app.colors.args  = _app.colors.yellow;
 _app.colors.symbol  = _app.colors.red;
 _app.colors.property  = _app.colors.magenta;
@@ -441,9 +482,7 @@ var runTest=function(testSet,testSetName,testName,done){
         // if a  test does not complete after 10 seconds,it can indicate a bug)
         // so we start a timeout before each test, and nix it when the test completes or fails
         var doneCompleted,
-            msg_prefix = _app.colors.yellow+"Warning:"+testName+ _app.colors.magenta+ "\n Test is still running after "+_app.colors.red,
-            msg_suffix = _app.colors.magenta+" seconds."+_app.colors.normal,
-            
+             
             timeoutChecker = function(){
                  var elapsed = Date.now()-testFN.started;
                  if ( elapsed < _app.timeout) {
@@ -603,7 +642,6 @@ _app.run = function(failLimit,testLimit,cb){
         
     };
     
-
     runTestSet(0);
 
     
@@ -611,49 +649,9 @@ _app.run = function(failLimit,testLimit,cb){
 };
 
 
-var sourceCodeTestNeeded = function(testName,filename) {
-    var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
-    testNeeded = !fs.existsSync(testStatsFn),
-    sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
-    var lastFail=false;
-    if (!testNeeded) {
-        var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
-        testNeeded = ( sha256sum !== selfTestStats.sha256sum);
-        if (!selfTestStats.results || selfTestStats.results.errors.length>0) {
-            lastFail = true;
-        }
-    }
-    
-    var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
-    _app.setStatJSON[testName]={fn:testStatsFn,sha256sum:sha256sum};
-    
-    if (process.argv.indexOf("--all")>=0 ) {
-        console.log(_app.colors.yellow + sha256sum +" testing "+_app.colors.red + dispname+"  ( --all switch ) "+_app.colors.normal);
-        testNeeded = true;
-    } else {
-    
-        if (testNeeded) {
-            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
-        } else {
-            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
-            if (lastFail && testName!=="selfTest") {
-                testNeeded = true;
-                console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red +dispname+" failed on last test"+_app.colors.normal);
-            }
-            
-        }
-    }
-    return testNeeded;
-},
-selfTestNeeded = sourceCodeTestNeeded("selfTest",__filename),
-runTestsIfNeeded = function (testName,rel_path) {
-    if (sourceCodeTestNeeded(testName,path.join(path.dirname(__filename),rel_path+".js"))) {
-        _app.tests[testName] =  require(rel_path).tests;
-    }
-};
-
 
 if (selfTestNeeded) {
+    console.log("NOTE - selfTest intentionally has multiple fail messages, to test fail reports)");
     _app.tests.selfTest = {
         
         "always passes" : function (done) {
