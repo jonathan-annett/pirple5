@@ -3,6 +3,24 @@ Homework Assignment #5
 
 This is an [assignment](assignment.md) for an online course.
 
+
+**TLDR**
+
+```bash
+
+git clone https://github.com/jonathan-annett/pirple5.git
+cd pirple5
+
+# first force testing of test/index.js, and app/lib.js
+node test --all
+
+# subsquent tests should only take place if you 
+# have edited one of those files
+
+node test
+```
+
+
 **the test framework itself [`test/index/js`](test/index.js)**  
 
 I opted to go somewhat further than the assignment asked, mainly as I wanted to ensure end to end testing of asynchronous functions can be tested in a serial fashion.
