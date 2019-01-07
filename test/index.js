@@ -489,6 +489,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 repeatKill=true;
                 
                 process.removeListener('uncaughtException',global_trap);
+
                 onTestPass(testSet,testSetName,testFN,done);
                 
             });
@@ -542,13 +543,14 @@ _app.run = function(failLimit,testLimit,cb){
                         
                     // asyncronously perform the test
                     runTest(testSet,testSetName,testName, function (){
-                        var statsx = _app.setStats[testSetName]
+                        var statsx = _app.setStats[testSetName];
                         _app.stats.finished =statsx.finished ; 
                         if ( ( _app.stats.errors.length <= failLimit) && ( _app.stats.count <= testLimit) ) {
                             
-                            console.log( _app.colors.yellow + testSetName +
-                            ( statsx.errors.length===0 ? ( statsx.success > 0 ? _app.colors.green +" PASS " : " NO TESTS " ) : _app.colors.red +" FAIL")+
-                            _app.colors.blue + "("+statsx.finished-statsx.started+" msecs)");
+                            console.log( 
+                                _app.colors.yellow + testSetName +
+                                  ( statsx.errors.length===0 ? _app.colors.green +" PASS " : _app.colors.red +" FAIL")+
+                                  _app.colors.blue + "("+statsx.finished-statsx.started+" msec)");
            
                        
                             runTestX(++x);
