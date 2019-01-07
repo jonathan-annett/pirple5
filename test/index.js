@@ -607,10 +607,11 @@ _app.setStats = {};
 
 var 
 testStatsFn = path.join(path.dirname(__filename),path.basename(__filename)+".ver.json"),
-selfTestNeeded = !fs.exists(testStatsFn),
+selfTestNeeded = !fs.existsSync(testStatsFn),
 selfStatInfo = fs.statSync(__filename);
 
 if (!selfTestNeeded) {
+    
     var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
     selfTestNeeded = ( selfStatInfo.mtime.getTime() !== selfTestStats.mtime) ||
                      ( selfStatInfo.size !== selfTestStats.size);
@@ -618,7 +619,7 @@ if (!selfTestNeeded) {
 
  if (selfTestNeeded) {
      fs.writeFileSync(testStatsFn,JSON.stringify({
-         mtime:selfStatInfo.mtime.getTime(),
+         mtime: selfStatInfo.mtime.getTime(),
          size : selfStatInfo.size
      }));
     _app.tests.selfTest = {
