@@ -32,7 +32,7 @@ If mutiple async functions simultaneously are really what you are trying to test
 
 Again, I went far further than a few simple functions. my main motivation here was the realization that in my previous 4 assignments I had not implemented any serious logging mechanism, mainly as the assignment specs had never mandated one. I'd been intending to write a logging module the moment an assignment asked for one. 
 
-As so I decided here to make my **test case** a logging framework, as I figured I'd really need to thorougly test that framework anyway. 
+And so I decided here to make my **test case** a logging framework, as I figured I'd really need to thorougly test that framework anyway. 
 
 As I worked on both files, they both got better.
 
