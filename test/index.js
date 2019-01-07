@@ -373,7 +373,7 @@ var printReport = function(failLimit,testLimit) {
                     indentStr(String(failedTestFN.exception),16);
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
-                    indentStr(String(failedTestFN.toString()),16);
+                    indentStr(javascript.colorize(failedTestFN.toString()),16);
                     console.log(""); 
                 });
             }
