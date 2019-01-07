@@ -422,10 +422,6 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     _app.setStats[testSetName].errors.push (testFN);
     _app.setStats[testSetName].finished = testFN.finished;
     testLogUpdate(testFN,testSetName,"FAIL","red");
-    console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
-                _app.colors.red +" FAIL "+
-                msec_pad(testFN,6,"blue") +" "+
-                left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
     done();
 };
 
