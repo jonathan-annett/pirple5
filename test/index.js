@@ -551,6 +551,14 @@ _app.run = function(failLimit,testLimit,cb){
         if (i>= testSetNames.length) {
             printReport(failLimit,testLimit);
             if (typeof cb==='function') {
+                
+                testSetNames.forEach(function(testSetName){
+                     var sha256Info = _app.setStatJSON[testSetName];
+                     sha256Info.results = _app.setStats[testSetName];
+                     fs.writeFileSync(sha256Info.fn,JSON.stringify(sha256Info));
+                });
+
+                
                 cb();
             }
         } else {
@@ -603,9 +611,9 @@ _app.run = function(failLimit,testLimit,cb){
 _app.tests    = {};
 _app.stats    = {};
 _app.setStats = {};
+_app.setStatJSON = {};
 
-
-var sourceCodeTestNeeded = function(filename) {
+var sourceCodeTestNeeded = function(testName,filename) {
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
     sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
@@ -616,17 +624,18 @@ var sourceCodeTestNeeded = function(filename) {
     }
     
     var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
+    _app.setStatJSON[testName]={fn:filename,sha256sum:sha256sum};
+    
     if (testNeeded) {
         console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
-        fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
     } else {
         console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
     }
     return testNeeded;
 },
-selfTestNeeded = sourceCodeTestNeeded(__filename),
+selfTestNeeded = sourceCodeTestNeeded("selfTest",__filename),
 runTestsIfNeeded = function (testName,rel_path) {
-    if (sourceCodeTestNeeded(path.join(path.dirname(__filename),rel_path+".js"))) {
+    if (sourceCodeTestNeeded(testName,path.join(path.dirname(__filename),rel_path+".js"))) {
         _app.tests[testName] =  require(rel_path).tests;
     }
 };
