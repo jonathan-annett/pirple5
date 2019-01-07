@@ -400,7 +400,7 @@ var onTestPass = function(testSet,testSetName,testFN,done) {
     console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
                  _app.colors.green +" PASS "+
                  msec_pad(testFN,6,"blue") +" "+
-                 left_pad(testFN.testName,process.stdout.columns-25,"yellow"));
+                 left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
     done();
 };
 
@@ -416,7 +416,7 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
                 _app.colors.red +" FAIL "+
                 msec_pad(testFN,6,"blue") +" "+
-                left_pad(testFN.testName,process.stdout.columns-29,"yellow"));
+                left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
     done();
 };
 
