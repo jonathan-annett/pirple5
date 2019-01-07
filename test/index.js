@@ -25,8 +25,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 "use strict";
 /* explode-require the node-libs we need */
 var needed =
-    "assert,fs,path";
-var [assert,fs,path] = needed.split(",").map(require);
+    "assert,fs,path,crypto";
+var [assert,fs,path,crypto] = needed.split(",").map(require);
 
 var _app = module.exports = {};
 
@@ -608,20 +608,17 @@ _app.setStats = {};
 var 
 testStatsFn = path.join(path.dirname(__filename),path.basename(__filename)+".ver.json"),
 selfTestNeeded = !fs.existsSync(testStatsFn),
-selfStatInfo = fs.statSync(__filename);
+sha256sum = crypto.createHash("sha256").update(fs.readFileSync(__filename), "utf8").digest("base64");
 
 if (!selfTestNeeded) {
-    
     var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
-    selfTestNeeded = ( selfStatInfo.mtime.getTime() !== selfTestStats.mtime) ||
-                     ( selfStatInfo.size !== selfTestStats.size);
+    selfTestNeeded = ( sha256sum !== selfTestStats.sha256sum);
 }
 
  if (selfTestNeeded) {
-     fs.writeFileSync(testStatsFn,JSON.stringify({
-         mtime: selfStatInfo.mtime.getTime(),
-         size : selfStatInfo.size
-     }));
+     
+     fs.writeFileSync(testStatsFn,JSON.stringify({sha256sum : sha256sum}));
+     
     _app.tests.selfTest = {
         
         "always passes" : function (done) {
