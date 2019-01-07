@@ -451,7 +451,7 @@ lib.getEntries = function(epoch,cb){
        });
    });  
 };
-//lib.getEntries(epoch,cb) --> cb(false,entries,isLast)
+//lib.getEntries(epoch,cb) --> cb(false,entries)
 lib.getAllEntries = function (reverse,cb) {
     if (typeof reverse==='function') {
         cb = reverse;
@@ -466,12 +466,12 @@ lib.getAllEntries = function (reverse,cb) {
             
             var loop = function (i) {
                 if (endLoop(i)) {
-                    return;
+                    return cb(true);
                 } else {
                     lib.getEntries(logs[i].epoch,function(err,entries){
                         if (err) return cb(err);
                         
-                        cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries ,endLoop(i+delta));
+                        cb(false, reverse ?  entries.sort(lib.epoch_sort_recent_first) : entries );
                         
                         loop(i+delta);
                         
@@ -1209,31 +1209,32 @@ lib.tests = {
     function (done) {
         assert.doesNotThrow(function(){
             var count = 0;
-            lib.getAllEntries(function(err,entries,isLast){
-                
-                count ++;   
-                
-                if (err || isLast) {
+            lib.getAllEntries(function(err,entries){
+                if (err===true) {
                     done();
                 }
+                assert.equal(err,false);
+                assert.equal(typeof entries,"object");
+                count ++;   
             });
            
         });
     },
      
+    /*
     
     "lib.getAllEntries(true,cb) does not throw"  : 
     function (done) {
         assert.doesNotThrow(function(){
             var count = 0;
-            lib.getAllEntries(true,function(err,entries,isLast){
-                count ++;   
-                
-                if (err || isLast) {
-                    done;
-                }
-            });
-           
+            lib.getAllEntries(true,function(err,entries){
+               if (err===true) {
+                   done();
+               }
+               assert.equal(err,false);
+               count ++;   
+           });
+
         });
     },
     
@@ -1241,18 +1242,18 @@ lib.tests = {
     function (done) {
         assert.doesNotThrow(function(){
             var count = 0;
-            lib.getAllEntries(false,function(err,entries,isLast){
-                count ++;   
-                
-                if (err || isLast) {
-                    done;
+            lib.getAllEntries(false,function(err,entries){
+                if (err===true) {
+                    done();
                 }
+                assert.equal(err,false);
+                count ++;   
             });
-           
+
         });
     },
     
-   
+   */
 
     
 };
