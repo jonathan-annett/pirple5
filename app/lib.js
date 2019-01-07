@@ -792,19 +792,19 @@ lib.tests = {
     },
     
     "lib.epoch_sort_recent_first works as expected" : function (done) {
-        
-        var input = [ 1,3,8,2,1024,7];
-        var expected =  [1024,8,7, 3, 2,1];
+        var to_element = function(x){return {t:x,m:"msg"}};
+        var input = [ 1,3,8,2,1024,7].map(to_element);
+        var expected =  [1024,8,7, 3, 2,1].map(to_element);
         var expected_JSON = JSON.stringify(expected);
-        var value = JSON.stringify(input.sort(lib.epoch_sort_recent_last));
+        var value = JSON.stringify(input.sort(lib.epoch_sort_recent_first));
         assert.equal(value,expected_JSON);
         done();
     },
     
     "lib.epoch_sort_recent_last works as expected" : function (done) {
-        
-        var input = [ 1,3,8,2,1024,7];
-        var expected =  [1,2,3,7,8,1024 ]; 
+        var to_element = function(x){return {t:x,m:"msg"}};
+        var input = [ 1,3,8,2,1024,7].map(to_element);
+        var expected =  [1,2,3,7,8,1024 ].map(to_element); 
         var expected_JSON = JSON.stringify(expected);
         var value = JSON.stringify(input.sort(lib.epoch_sort_recent_last));
         assert.equal(value,expected_JSON);
