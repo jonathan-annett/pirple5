@@ -345,9 +345,7 @@ var printReport = function(failLimit,testLimit) {
     console.log(hr);
     console.log("");
     if (_app.stats.errors.length) {
-        console.log("   Errors");    
-        console.log("");    
-        testSetNames.forEach(function(testSetName){
+          testSetNames.forEach(function(testSetName){
             var stats = _app.setStats[testSetName];
             if (stats.errors.length>0) {
                 console.log("         "+testSetName+" :  ");
