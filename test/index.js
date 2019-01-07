@@ -145,38 +145,22 @@ javascript.colorize = function (src){
    return result.join("");
 };
 
-_app.tests    = {};
-_app.stats    = {};
-_app.setStats = {};
-
-_app.tests.selfTest = {
-    
-    "always passes" : function (done) {
-        assert.ok(true);
-        done();
-    },
-    
-    "never passes" : function (done) {
-        assert.ok(false);
-        done();
-    },
-} ;
-
 var getTestCount = function() {
    return Object.keys(_app.tests).reduce(function(sum,testSetName){
        return sum + Object.keys(_app.tests[testSetName]).length;
    },0);  
 };
 
-var onTestPass = function(testSet,testSetName,testFN) {
+var onTestPass = function(testSet,testSetName,testFN,done) {
     testFN.state="passed";
     _app.stats.count  ++;
     _app.stats.passes ++;
     _app.setStats[testSetName].count  ++;
     _app.setStats[testSetName].passes ++;
+    done();
 };
 
-var onTestFail = function(testSet,testSetName,testFN,exception) {
+var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     testFN.state="failed";
     testFN.exception=exception;
     _app.stats.count    ++;
@@ -184,10 +168,16 @@ var onTestFail = function(testSet,testSetName,testFN,exception) {
     
     _app.setStats[testSetName].count    ++;
     _app.setStats[testSetName].errors.push (testFN);
+    done();
 };
 
-var runTest=function(testSet,testSetName,testName){
-    if (typeof testSet==='object' && typeof testName==='string') {
+var runTest=function(testSet,testSetName,testName,done){
+    
+    if ( typeof testSet==='object' && 
+         typeof testSetName==='string' && 
+         typeof testName==='string' && 
+         typeof done==='function' ) {
+             
         var testFN = testSet[testName];
         testFN.testName = testName;
         testFN.state = "running";
@@ -201,9 +191,9 @@ var runTest=function(testSet,testSetName,testName){
             doneCompleted=false;
             repeatKill = true;
             onTestFail(testSet,testSetName,testFN,
-                new Error("Test did not complete after "+String(_app.timeout/1000)+" seconds"));
+                new Error("Test did not complete after "+String(_app.timeout/1000)+" seconds"),
+                done);
         },_app.timeout);
-        
         
         try {
 
@@ -224,7 +214,7 @@ var runTest=function(testSet,testSetName,testName){
                 testFN.finished = stamp;
                 repeatKill=true;
                 
-                onTestPass(testSet,testSetName,testFN);
+                onTestPass(testSet,testSetName,testFN,done);
                 
             });
         } catch (exception) {
@@ -247,8 +237,13 @@ var runTest=function(testSet,testSetName,testName){
                 return;
             }
             
-            onTestFail(testSet,testSetName,testFN,exception);
+            onTestFail(testSet,testSetName,testFN,exception,done);
         }
+        
+    } else {
+        
+        throw new Error("runTest(testSet,testSetName,testName,done) called with bad arguments");
+        
     }
 };
 
@@ -392,7 +387,7 @@ var printReport = function(failLimit,testLimit) {
     console.log(hr);
 };
 
-_app.run = function(failLimit,testLimit){
+_app.run = function(failLimit,testLimit,cb){
     
     var testCount = getTestCount ();
     testLimit = typeof testLimit === 'number' && testLimit < testCount ? testLimit : testCount;
@@ -400,30 +395,70 @@ _app.run = function(failLimit,testLimit){
     var testSetNames = Object.keys(_app.tests);
     
     clearTestStats();
-    var lastFinish = _app.stats.started = Date.now() ;
-    testSetNames.some(function(testSetName){
-        var testSet    = _app.tests[testSetName];
-        var testNames  = Object.keys(testSet);
-        var lastFinish = _app.setStats[testSetName].started = Date.now();
-        
-        var tester = function(testName){ 
-            runTest(testSet,testSetName,testName);
-            lastFinish = testSet[testName].finished;
-            return ( _app.stats.failures <= failLimit) && ( _app.stats.count <= testLimit);
-        };
-        
-        var testsDone = testNames.some(tester);
-        
-        _app.setStats[testSetName].finished = lastFinish; 
-        
-        return testsDone;
-        
-    });
-    _app.stats.finished = lastFinish;
+    var lastSetFinish = _app.stats.started = Date.now() ;
     
-    printReport(failLimit,testLimit);
+    // runTestSet will be called once for each element index of testSetName keys
+    var runTestSet = function (i) {
+        
+        if (i>= testSetNames.length) {
+            _app.stats.finished = lastSetFinish; 
+            printReport(failLimit,testLimit);
+            cb();
+        } else {
+            var testSetName = testSetNames[i],
+            testSet = _app.tests[testSetName];
+            
+            var testNames  = Object.keys(testSet);
+            var lastFinish = _app.setStats[testSetName].started = Date.now();
+
+            // runTestX will be called once for each element index of testSet keys
+            var runTestX = function (x) {
+                if (x>= testNames.length) {
+                    runTestSet(++i);
+                } else {
+                    var key = testNames[x],
+                        testName = testSet[key];
+                        
+                    // asyncronously perform the test
+                    runTest(testSet,testSetName,testName, function (){
+                        lastFinish = testSet[testName].finished;
+                        if ( ( _app.stats.failures <= failLimit) && ( _app.stats.count <= testLimit) ) {
+                            runTestX(++x);
+                        } else {
+                            runTestSet(testSetNames.length);
+                        }
+                    });
+                }
+            };
+            runTestX(0);
+
+            _app.setStats[testSetName].finished = lastFinish; 
+            
+        }
+        
+    };
+    runTestSet(0);
+
+    
+    
 };
 
+_app.tests    = {};
+_app.stats    = {};
+_app.setStats = {};
+
+_app.tests.selfTest = {
+    
+    "always passes" : function (done) {
+        assert.ok(true);
+        done();
+    },
+    
+    "never passes" : function (done) {
+        assert.ok(false);
+        done();
+    },
+} ;
 _app.tests.lib = require("../app/lib").tests;
 
 _app.run();
