@@ -36,7 +36,7 @@ And so I decided here to make my **test case** a logging framework, as I figured
 
 As I worked on both files, they both got better.
 
-**extra miles*
+**extra miles**
 
  * [syntax coloring](test/index.js#L120)
  * [test timing](test/index.js#L263)
