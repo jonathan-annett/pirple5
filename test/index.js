@@ -630,15 +630,21 @@ var sourceCodeTestNeeded = function(testName,filename) {
     var dispname = "..."+filename.substr(path.dirname(path.dirname(path.dirname(__filename))).length);
     _app.setStatJSON[testName]={fn:testStatsFn,sha256sum:sha256sum};
     
-    if (testNeeded) {
-        console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
+    if (process.argv.indexOf("--all")>=0 ) {
+        console.log(_app.colors.yellow + sha256sum +" testing "+_app.colors.red + dispname+"  ( --all switch ) "+_app.colors.normal);
+        testNeeded = true;
     } else {
-        console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
-        if (lastFail && testName!=="selfTest") {
-            testNeeded = true;
-            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red +dispname+" failed on last test"+_app.colors.normal);
+    
+        if (testNeeded) {
+            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red + dispname+" changed since last test"+_app.colors.normal);
+        } else {
+            console.log(_app.colors.yellow + sha256sum +" "+_app.colors.green +dispname+" unchanged since last test"+_app.colors.normal);
+            if (lastFail && testName!=="selfTest") {
+                testNeeded = true;
+                console.log(_app.colors.yellow + sha256sum +" "+_app.colors.red +dispname+" failed on last test"+_app.colors.normal);
+            }
+            
         }
-        
     }
     return testNeeded;
 },
