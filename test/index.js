@@ -416,8 +416,7 @@ _app.run = function(failLimit,testLimit,cb){
                 if (x>= testNames.length) {
                     runTestSet(++i);
                 } else {
-                    var key = testNames[x],
-                        testName = testSet[key];
+                    var testName = testNames[x];
                         
                     // asyncronously perform the test
                     runTest(testSet,testSetName,testName, function (){
