@@ -388,7 +388,11 @@ var printReport = function(failLimit,testLimit) {
                     console.log("          Test:       "+failedTestFN.testName);
                     console.log("          Error:");
                     indentStr(String(failedTestFN.exception),16);
-                    console.log("          code    :   "+failedTestFN.exception.stack.split("\n")[2] );
+                    var line="?",lines = failedTestFN.exception.stack.split("\n");
+                    while (lines && line && line.substr(0,3)!=="at ") {
+                        line = lines.shift();
+                    }
+                    console.log("          code    :   "+line);
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
                     indentStr(javascript.colorize(failedTestFN.toString()),16);
