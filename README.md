@@ -23,7 +23,7 @@ It became clear to me when watching the video tutorial that whilst the rudimenta
 
 Intelligent exception trapping in deffered callbacks would not really be possible either, as any exceptions that take place in a deffered callback might not be trapped properly.
 
-So I opted against a syncrhonous [for - in loop which fires off multiple potentially async tests](https://github.com/pirple/The-NodeJS-Master-Class/blob/728dd393177a215e487de112671a970350d24d50/Section%206/FINAL/test/index.js#L36) in favour of several nested [asynchrous](test/index.js#L585) [loops](test/index.js#L611) which acheives the same thing, but does not start the next test until the previous test has completed.
+So I opted against a synchronous [for - in loop which fires off multiple potentially async tests](https://github.com/pirple/The-NodeJS-Master-Class/blob/728dd393177a215e487de112671a970350d24d50/Section%206/FINAL/test/index.js#L36) in favour of several nested [asynchronous](test/index.js#L585) [loops](test/index.js#L611) which acheives the same thing, but does not start the next test until the previous test has completed.
 
 If mutiple async functions simultaneously are really what you are trying to test, it would be better to make that a part of the test function itself - by coding a `function test(done){}` which deliberately fires off mutiple async commands and waits for them to complete before calling done.
 
