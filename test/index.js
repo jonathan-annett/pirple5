@@ -272,7 +272,7 @@ var printReport = function(failLimit,testLimit) {
         var testNames = Object.keys(testSet);
         
         testNames.forEach(function(testName){
-            collateStats(_app.setStats[testName]);
+            collateStats(_app.setStats[testSetName]);
         });
         
     });
