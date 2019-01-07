@@ -42,5 +42,5 @@ As I worked on both files, they both got better.
  * [test timing](test/index.js#L263)
  * [version hashing](test/index.js#L67) to detect if retesting is needed
  * [configuration in `test/tests.json`](test/tests.json) to [autoload](test/index.js#L652) `tests` ([exported by a module being tested](app/lib.js#L748))
- * [detection of not calling `done()`](test/index.js#L482), and [calling `done()` mutiple times](test/index.js#L545), and execptions that happen [after `done()` has been called](test/index.js#L511)
+ * [detection of not calling `done()`](test/index.js#L482), and [calling `done()` mutiple times](test/index.js#L545), and exceptions that happen [after `done()` has been called](test/index.js#L511)
  * a temporary [global exception hook](test/index.js#L523) is [installed](test/index.js#L529) and [removed](test/index.js#L525) at [appropriate](test/index.js#L552) [places](test/index.js#L561)
