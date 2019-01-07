@@ -671,10 +671,14 @@ if (selfTestNeeded) {
 runTestsIfNeeded ("lib","../app/lib");
 
 if (selfTestNeeded) {
-    console.log( "NOTE - selfTest intentionally has multiple fail messages,\n"+
-                 "in order to properly test fail reports\n"+
-                 "This Test only runs if you have changed "+path.basename(__filename)
-                 );
+    console.log(
+        _app.colors.mangenta+
+        "NOTE - the internal 'selfTest' intentionally has multiple fail messages,\n"+
+         "in order to properly test fail reports\n"+
+         "'selfTest' only runs if you have changed "+path.basename(__filename)+
+         _app.colors.normal
+        
+   );
 }
 
 
