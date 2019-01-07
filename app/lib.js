@@ -24,8 +24,8 @@ lib.config = {
     maxLogSizeBytes            : 1024*1024,
     maxLogEntriesPerFile       : 10,
     maxLogHoursPerFile         : 0.1,
-    maxUncompressedFileCount    : 5,
-    max_file_cache          : 10,
+    maxUncompressedFileCount   : 5,
+    max_file_cache             : 10,
 };
 
 lib.basedir = path.join(__dirname,'..','.logs');

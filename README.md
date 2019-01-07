@@ -11,12 +11,6 @@ This is an [assignment](assignment.md) for an online course.
 git clone https://github.com/jonathan-annett/pirple5.git
 cd pirple5
 
-# first force testing of test/index.js, and app/lib.js
-node test --all
-
-# subsquent tests should only take place if you 
-# have edited one of those files
-
 node test
 ```
 
