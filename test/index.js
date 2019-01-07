@@ -438,6 +438,7 @@ var printReport = function(failLimit,testLimit) {
         console.log("          Failures:   "+stats.errors.length);
         console.log("          Run Time:   "+ String(stats.duration /1000) );
         console.log("");
+        
     });
     console.log(hr);
     console.log("");
@@ -467,6 +468,8 @@ var printReport = function(failLimit,testLimit) {
                     console.log("          Run Time:   "+ String(failedTestFN.duration /1000) );
                     console.log("          Source:      ");
                     indentStr(javascript.colorize(failedTestFN.toString()),16);
+                    console.log("");
+                    console.log(hr);
                     console.log(""); 
                 });
             }
