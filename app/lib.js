@@ -22,13 +22,19 @@ var lib = module.exports = {};
 
 lib.config = {
     maxLogSizeBytes            : 1024*1024,
-    maxLogEntriesPerFile       : 10,
-    maxLogHoursPerFile         : 0.1,
-    maxUncompressedFileCount   : 5,
+    maxLogEntriesPerFile       : 1000,
+    maxLogHoursPerFile         : 5,
+    maxUncompressedFileCount   : 25,
     max_file_cache             : 10,
 };
 
 lib.basedir = path.join(__dirname,'..','.logs');
+
+var conColor={colors:true,depth:null}
+console.dump = function (obj) {
+   console.dir (obj,conColor);
+}
+
 
 //lib.logFileName(f) --> a String "path/to/filename/lib-??????.json"
 // f can be a String(filename), a Date or a Number (timestamp)
@@ -167,10 +173,13 @@ lib.createLogListItem = function (opt,fn) {
    var compressed = fn.indexOf(".json.gz")>0;
    var needed = false;
    if (opt.all) {
-       needed = true;
+       needed = epoch ? true : false;
    } else {
-       if (opt.compressed && compressed) needed = true;
-       if (!opt.compressed && !compressed) needed = true;
+       if (epoch) {
+           if (opt.compressed===true && compressed===true) needed = true;
+           if (opt.compressed===false && compressed===false) needed = true;
+           if (opt.compressed===undefined && compressed===false) needed = true;
+       }
    }
    if (needed && opt.before_epoch){
        if (epoch >= opt.before_epoch) {
@@ -226,14 +235,14 @@ lib.listLogs = function(opt,cb){
 
 // create a new log file, with an object for the first entry
 //lib.createFile (firstEntry,cb) ---> cb(err,fn,firstEntry) .... fn is the filename for future writes
-lib.createFile = function (firstEntry,cb){
+lib.createFile = function (firstEntry,cb,when){
+    when = when || Date.now();
     if (typeof firstEntry==='function') {
         cb=firstEntry;
         firstEntry = undefined;
     }
     
     
-    var when = Date.now();
     var fn = lib.logFileName(when);
     if (fn===false) throw new Error("Unknown error establishing log filename");
     
@@ -253,8 +262,8 @@ lib.createFile = function (firstEntry,cb){
 };
 
 //lib.extendFile(f,nextEntry,cb) --> cb(false,fn,nextEntry)
-lib.extendFile = function (f,nextEntry,cb){
-    var when = Date.now();
+lib.extendFile = function (f,nextEntry,cb,when){
+    when = when || Date.now();
     var fn = lib.logFileName(f);
     if (fn===false) return typeof cb === 'function' ?   cb(new Error("invalid log filename")) : undefined;
     if (typeof nextEntry!=='object') {
@@ -285,8 +294,8 @@ lib.extendFile = function (f,nextEntry,cb){
     
 };
 //lib.arrayExtendFile (f,nextEntries,cb) --> cb (false,fn,nextEntries);
-lib.arrayExtendFile = function (f,nextEntries,cb){
-    var when = Date.now();
+lib.arrayExtendFile = function (f,nextEntries,cb,when){
+    when = when || Date.now();
     var fn = lib.logFileName(f);
     if (fn===false) return cb(new Error("invalid log filename"));
     if (typeof nextEntries!=='object' || nextEntries.constructor!==Array || nextEntries.length===0) {
@@ -588,95 +597,144 @@ lib.getLogNextEntries = function ( entries, cb  ) {
 lib.currentLogFile = false;
 
 //lib.log  ( logEntry, cb )  --> cb(false,fn,nextEntry);
-lib.log = function ( logEntry, cb ) { 
+lib.log = function ( logEntry, cb , catchup ) { 
     
     if (typeof logEntry === 'function') {
         cb = logEntry;
         logEntry = undefined;
     }
-    var newFile = function () {
-        lib.createFile ({message:"New Log File Created"},function(err,fn){
-            
-            if (err) {
-                return console.log({err:err});
-            }
-            
-            // create lib.currentLogFile as a single list item entry 
-            // (it will not live in a list however, we just need one as there is no "last log file used")
-            
-            if (lib.currentLogFile && lib.currentLogFile.entries) {
-                lib.getEntriesCache[lib.currentLogFile.epoch] = lib.currentLogFile.entries;
-                lib.getEntriesCache_.push(lib.currentLogFile.epoch);
-                delete lib.currentLogFile.entries;
-                delete lib.currentLogFile;
-            }
-            
-            lib.currentLogFile  = lib.createLogListItem({getter:true},fn);
-            lib.all_epochs.push(lib.currentLogFile.epoch);
-            if (typeof logEntry === 'object') {
+    var xxx = {when:Date.now(),logEntry:logEntry}
+    lib.log.queue.push(xxx);
+    console.dump(xxx);
     
-                lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
-                    
-                    if (err) {
-                        return console.log({err:err});
-                    }
-                    lib.currentLogFile.entries = [nextEntry];
-                    if (typeof cb==="function") cb(false,fn,nextEntry);  
-                });
-            
-            } else {
-                lib.currentLogFile.entries = [];
-                if (typeof cb==="function") cb(false,fn);   
-                
-            }
-        });
-    };
-    
-    if (typeof lib.currentLogFile === 'undefined') {
-        return newFile();
-    }
-    
-    
-    if (typeof lib.currentLogFile.get === 'function') {
-        return lib.currentLogFile.get(function(err,entries){
-            
-           
-            if ( err ||  ! entries ||   (entries.length > lib.config.maxLogEntriesPerFile)  ) {
-                    return newFile();
-             }
-             
-             if (lib.currentLogFile.uncompressed_size > lib.config.maxLogSizeBytes) {
-                  return newFile();
-             }
-             
-             var msec_per_hour = (1000 * 60 * 60);
-             var age_in_hours = (Date.now()-lib.currentLogFile.epoch) / msec_per_hour;
-             
-             if ( age_in_hours >  lib.config.maxLogHoursPerFile ) {
-                     return newFile();
-             }
-            if (typeof logEntry === 'object') {
-                lib.extendFile(lib.currentLogFile.fn,logEntry,function(err,fn,nextEntry){
-                    
-                    if (err) {
-                        console.log({err:err});
-                        return newFile();
-                    }
-                    
-                    lib.currentLogFile.entries.push(nextEntry);
-                    
-                    if (typeof cb==="function") return cb(false,fn,nextEntry);   
-                });
-            } else {
-                if (typeof cb==="function") return cb(false,lib.currentLogFile.fn);   
-            }
+    if (typeof cb!=='function' || lib.log.busy) {
+        
+        // there is no callback, or we are still waiting for other items to finish writing
+        // so we can't continue. that's ok as the next call (or the one that's busy) will deal with it.
+        
+        return;
+     }
+     
+    lib.log.busy = true;
 
-        });
-    } else {
-        if (typeof cb==="function") return cb(new Error("can't get data from log entry"));   
+    function writeLog(logItem,cb){
+        
+        var {when,logEntry} = logItem;
+        
+        var newFile = function () {
+            lib.createFile ({message:"New Log File Created"},function(err,fn){
+                
+                if (err) {
+                    return console.log({err:err});
+                }
+                
+                // create lib.currentLogFile as a single list item entry 
+                // (it will not live in a list however, we just need one as there is no "last log file used")
+                
+                if (lib.currentLogFile && lib.currentLogFile.entries) {
+                    lib.getEntriesCache[lib.currentLogFile.epoch] = lib.currentLogFile.entries;
+                    lib.getEntriesCache_.push(lib.currentLogFile.epoch);
+                    delete lib.currentLogFile.entries;
+                    delete lib.currentLogFile;
+                }
+                
+                lib.currentLogFile  = lib.createLogListItem({getter:true},fn);
+                lib.all_epochs.push(lib.currentLogFile.epoch);
+                if (typeof logEntry === 'object') {
+        
+                    lib.extendFile (fn,logEntry,function(err,fn,nextEntry){
+                        
+                        if (err) {
+                            return console.log({err:err});
+                        }
+                        lib.currentLogFile.entries = [nextEntry];
+                        cb(false,fn,nextEntry);  
+                    });
+                
+                } else {
+                    lib.currentLogFile.entries = [];
+                    cb(false,fn);   
+                    
+                }
+            },when);
+        };
+        
+        if (typeof lib.currentLogFile === 'undefined') {
+            return newFile();
+        }
+        
+        
+        if (typeof lib.currentLogFile.get === 'function') {
+            return lib.currentLogFile.get(function(err,entries){
+                
+               
+                if ( err ||  ! entries ||   (entries.length > lib.config.maxLogEntriesPerFile)  ) {
+                        return newFile();
+                 }
+                 
+                 if (lib.currentLogFile.uncompressed_size > lib.config.maxLogSizeBytes) {
+                      return newFile();
+                 }
+                 
+                 var msec_per_hour = (1000 * 60 * 60);
+                 var age_in_hours = (when-lib.currentLogFile.epoch) / msec_per_hour;
+                 
+                 if ( age_in_hours >  lib.config.maxLogHoursPerFile ) {
+                         return newFile();
+                 }
+                if (typeof logEntry === 'object') {
+                    lib.extendFile(lib.currentLogFile.fn,logEntry,function(err,fn,nextEntry){
+                        
+                        if (err) {
+                            console.log({err:err});
+                            return newFile();
+                        }
+                        
+                        lib.currentLogFile.entries.push(nextEntry);
+                        
+                        return cb(false,fn,nextEntry);   
+                    },when);
+                } else {
+                    return cb(false,lib.currentLogFile.fn);   
+                }
+    
+            });
+        } else {
+            return cb(new Error("can't get data from log entry"));   
+        }
     }
+    
+    // loop to deal with pending log entries
+    var loggerLoop = function () {
+        if (lib.log.queue.length===0) {
+            // Past the end of the list - break out of loop
+            lib.log.busy = false;
+            /*function to call-->*/cb(false,lib.currentLogFile.fn,logEntry);/*<--to exit*/
+        } else {
+            writeLog(lib.log.queue.shift(),function(err,fn,entry){
+                if (err) return cb(err);
+                // logging is not that critical, so don't loop frantically here unless there are a lot of messages
+                var delayTime;// 2 per second = 0.5 to 1
+                /*switch (true) {
+                    case lib.log.queue.length >= 100  : delayTime=10; break;  // 100 per second = 1 second lag
+                    case lib.log.queue.length >= 50   : delayTime=20; break;  // 50 per second  = 1 to 2.45 second lag
+                    case lib.log.queue.length >= 20   : delayTime=50; break;  // 20 per second  = 1 to 1.9 second lag
+                    case lib.log.queue.length >= 10   : delayTime=100; break; // 10 per second  = 1 to 1.9 second lag
+                    case lib.log.queue.length >= 5    : delayTime=200; break; // 5 per second   = 1 to 1.8 second lag
+                    default:
+                    delayTime=500;// 2 per second = 0.5 to 2 seconds lag
+                }*/
+                delayTime=1;
+                setTimeout(loggerLoop,delayTime);
+            });
+        }
+    };
+    loggerLoop(0);
+
     
 };
+lib.log.queue = [];
+lib.log.busy=false;
 
 lib.init = function(cb){
     // ensure the log storeage path exists
@@ -1052,9 +1110,10 @@ lib.tests = {
                 var fileJSON = JSON.parse(fileData);
                 assert.equal(typeof fileJSON,'object');
                 assert.equal(fileJSON.constructor,Array);
+                done();
             });
         });
-        done();
+        
     },
     
     "lib.createFile(firstEntry,cb) calls cb with a string filename that points to valid JSON file":
