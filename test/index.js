@@ -64,7 +64,60 @@ _app.colors.reserved = _app.colors.cyan;
 _app.colors.string = _app.colors.yellow;
 
 
-var sourceCodeTestNeeded = function(testName,filename) {
+var 
+functionSourceCodeCache={},
+functionSourceIndentColumns=24,
+functionSourceIndentPadding =  (new Array (1+functionSourceIndentColumns)).join(" "),
+functionSourceCode= function(testSetName,fn,err_line,errMessage) {
+    var src= fn.toString();
+    var ErrLineNo=NaN;
+    var ErrLineCol=0;
+    var file_src;
+    if (err_line) {
+        
+        //(/home/jonathan/homework/pirple5.1/test/array_split.js:776:23)
+        
+        var grab=err_line.trim().split("(");
+        if (grab.length===2){
+            grab = grab.pop().split(")");
+            if (grab.length===2) {
+                grab = grab.shift().split(":");
+                if (grab.length===3) {
+                    ErrLineNo=Number.parseInt(grab[1]);
+                    ErrLineCol=Number.parseInt(grab[2]);
+                    var filename = grab[0];
+                    if (fs.existsSync(filename)) {
+                        file_src=fs.readFileSync(filename).toString();
+                    }
+                }
+            }
+        }
+    }
+    file_src =  file_src ||functionSourceCodeCache[testSetName];
+    var locate = file_src ? file_src.split(src) : false;
+    
+    if (locate && locate.length===2) {
+        var lineNo = locate[0].split("\n").length;
+        var indent_line_no=function (line,ix) {
+            var thisLine = lineNo+ix;
+            return (String(thisLine)+
+               functionSourceIndentPadding).substr(0,functionSourceIndentColumns)+
+               javascript.colorize(line)+
+               (thisLine===ErrLineNo?
+               '\n'+(new Array(ErrLineCol+functionSourceIndentColumns-4)).join(" ")+
+                    _app.colors.error +">>> ^" +
+                    ( errMessage ? "  <<< "+errMessage : '  <<< EXCEPTION LINE') +
+                    _app.colors.normal   
+               :'');
+        };
+        return src.split("\n").map(indent_line_no).join("\n");
+    } else {
+        return src.split("\n").map(function (line) {
+            return functionSourceIndentPadding+javascript.colorize(line);
+        }).join("\n");
+    }
+},
+sourceCodeTestNeeded = function(testName,filename) {
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
     sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
@@ -100,7 +153,9 @@ var sourceCodeTestNeeded = function(testName,filename) {
 },
 selfTestNeeded,
 runTestsIfNeeded = function (testName,rel_path) {
-    if (sourceCodeTestNeeded(testName,path.join(path.dirname(__filename),rel_path+".js"))) {
+    var filename = path.join(path.dirname(__filename),rel_path+".js");
+    if (sourceCodeTestNeeded(testName,filename)) {
+        functionSourceCodeCache[testName]=fs.readFileSync(filename).toString();
         _app.tests[testName] =  require(rel_path).tests;
     }
 };
@@ -368,11 +423,19 @@ var printReport = function(failLimit,testLimit) {
                     }
                     console.log("          Run Time:   " + ( failedTestFN.duration > 500 ? _app.colors.red : failedTestFN.duration > 250 ? _app.colors.yellow : _app.colors.green )+String(failedTestFN.duration /1000)+_app.colors.normal );
                     console.log("          Source:      ");
-                    indentStr(javascript.colorize(failedTestFN.toString()),22);
-                     var 
-                    log_array = failedTestFN.test_console_log;
+                    console.log(
+                        functionSourceCode(
+                            testSetName,
+                            failedTestFN,
+                            line?line.trim():undefined,
+                            failedTestFN.exception ? String(failedTestFN.exception).trim() : undefined
+                        )
+                    );
+                    
+                    var log_array = failedTestFN.test_console_log;
+                    
                     if (log_array) {
-                        console.log("          Console Output:      ");
+                        console.log("          Console Output:      "+_app.colors.cyan);
                         log_array.forEach(function(logEntry){
                             if (logEntry.log) {
                                 console.log.apply(console,logEntry.log);
@@ -385,7 +448,7 @@ var printReport = function(failLimit,testLimit) {
                         delete failedTestFN.test_console_log;
 
                     }
-                    console.log("");
+                    console.log(_app.colors.normal);
                     console.log(hr);
                     console.log(""); 
                    
