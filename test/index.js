@@ -77,19 +77,27 @@ functionSourceCode= function(testSetName,fn,err_line,errMessage) {
         
         //(/home/jonathan/homework/pirple5.1/test/array_split.js:776:23)
         
+        var get_errs=function(str){
+            var grab = str.split(":");
+            if (grab.length===3) {
+                ErrLineNo=Number.parseInt(grab[1]);
+                ErrLineCol=Number.parseInt(grab[2]);
+                var filename = grab[0];
+                if (fs.existsSync(filename)) {
+                    file_src=fs.readFileSync(filename).toString();
+                }
+            }
+        };
+        
         var grab=err_line.trim().split("(");
         if (grab.length===2){
             grab = grab.pop().split(")");
             if (grab.length===2) {
-                grab = grab.shift().split(":");
-                if (grab.length===3) {
-                    ErrLineNo=Number.parseInt(grab[1]);
-                    ErrLineCol=Number.parseInt(grab[2]);
-                    var filename = grab[0];
-                    if (fs.existsSync(filename)) {
-                        file_src=fs.readFileSync(filename).toString();
-                    }
-                }
+                get_errs(grab.shift());
+            }
+        } else {
+            if (err_line.substr(0,3)==='at '){
+                get_errs(err_line.substr(3).trim());
             }
         }
     }
@@ -156,7 +164,29 @@ runTestsIfNeeded = function (testName,rel_path) {
     var filename = path.join(path.dirname(__filename),rel_path+".js");
     if (sourceCodeTestNeeded(testName,filename)) {
         functionSourceCodeCache[testName]=fs.readFileSync(filename).toString();
-        _app.tests[testName] =  require(rel_path).tests;
+        
+        var tests = _app.tests[testName] =  require(rel_path).tests;
+        
+        Object.keys(tests).forEach((fnBeingTested)=>{
+            var testFn = tests[fnBeingTested];
+                    
+            if ( typeof testFn==='function' && 
+                typeof testFn.tests === 'object' ){
+                    
+                    if (testFn.tests.constructor===Array) {
+                        testFn.tests.forEach((test,ix) => {
+                             tests["test"+String(ix+1)+" @ "+fnBeingTested+"()"] = testFn.tests[test];
+                        });
+                    } else {
+                        Object.keys(testFn.tests).forEach((test) => {
+                             tests[test+" @ "+fnBeingTested+"()"] = testFn.tests[test];
+                        });
+                        
+                    }
+                    delete testFn.tests;
+                    delete tests[fnBeingTested];
+                }
+        });
     }
 };
 
