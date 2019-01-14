@@ -337,7 +337,6 @@ var printReport = function(failLimit,testLimit) {
     console.log("");
     testSetNames.forEach(function(testSetName){
         var stats = _app.setStats[testSetName];
-        console.log("         "+testSetName+" :  ");
         console.log("          Passes:     "  + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.yellow )  + stats.passes + _app.colors.normal );
         console.log("          Failures:   " + ( stats.errors.length === 0 ? _app.colors.green : _app.colors.red ) + stats.errors.length + _app.colors.normal);
         console.log("          Run Time:   " + String(stats.duration /1000) );
@@ -352,7 +351,7 @@ var printReport = function(failLimit,testLimit) {
             if (stats.errors.length>0) {
                 console.log("         "+testSetName+" :  ");
                 stats.errors.forEach(function(failedTestFN){
-                    console.log("          Test:       "+_app.colors.yellow+failedTestFN.testName+_app.colors.normal);
+                    console.log("          Test:       " + _app.colors.cyan + testSetName + _app.colors.normal +  "/" +  _app.colors.yellow+failedTestFN.testName+_app.colors.normal);
                     console.log("          Error:"+_app.colors.red);
                     indentStr(String(failedTestFN.exception),22);
                     var line="?",lines = failedTestFN.exception.stack.split("\n");
