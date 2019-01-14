@@ -98,7 +98,7 @@ var sourceCodeTestNeeded = function(testName,filename) {
     }
     return testNeeded;
 },
-selfTestNeeded = sourceCodeTestNeeded("selfTest",__filename),
+selfTestNeeded,
 runTestsIfNeeded = function (testName,rel_path) {
     if (sourceCodeTestNeeded(testName,path.join(path.dirname(__filename),rel_path+".js"))) {
         _app.tests[testName] =  require(rel_path).tests;
@@ -370,9 +370,26 @@ var printReport = function(failLimit,testLimit) {
                     console.log("          Run Time:   " + ( failedTestFN.duration > 500 ? _app.colors.red : failedTestFN.duration > 250 ? _app.colors.yellow : _app.colors.green )+String(failedTestFN.duration /1000)+_app.colors.normal );
                     console.log("          Source:      ");
                     indentStr(javascript.colorize(failedTestFN.toString()),22);
+                     var 
+                    log_array = failedTestFN.test_console_log;
+                    if (log_array) {
+                        console.log("          Console Output:      ");
+                        log_array.forEach(function(logEntry){
+                            if (logEntry.log) {
+                                console.log.apply(console,logEntry.log);
+                            }
+                            if (logEntry.dir) {
+                                console.dir.apply(console,logEntry.dir);
+                            }
+                        });
+                        log_array.splice(0,log_array.length);
+                        delete failedTestFN.test_console_log;
+
+                    }
                     console.log("");
                     console.log(hr);
                     console.log(""); 
+                   
                 });
             }
 
@@ -507,7 +524,7 @@ var runTest=function(testSet,testSetName,testName,done){
             }
             
             if (repeatKill) {
-                // an exception after done() was called  
+                // an exception after done() was called 
                 console.log(_app.colors.red + "WARNING: LATE EXCEPTION - AFTER done()" + _app.colors.normal);
                 console.dir({
                     "Test Set"  : testSetName,
@@ -522,6 +539,8 @@ var runTest=function(testSet,testSetName,testName,done){
         
         global_trap = function (exception) {
                 testFN.finished = Date.now();
+                console.log  = console.__swizzled.log;
+                console.dir  = console.__swizzled.dir;
                 process.removeListener('uncaughtException',global_trap);
                 err_callback(exception);
         };
@@ -530,9 +549,31 @@ var runTest=function(testSet,testSetName,testName,done){
         
         try {
 
+            if (testFN.test_console_log) {
+                testFN.test_console_log.splice(0,testFN.test_console_log.length);
+                delete testFN.test_console_log;
+            }
+            
+            console.__swizzled = console.__swizzled || { log: console.log, dir : console.dir};
+            console.log = function log (){
+                var 
+                logEntry = {log: Array.prototype.slice.call(arguments)},
+                log_array = testFN.test_console_log ? testFN.test_console_log : (testFN.test_console_log=[]); 
+                log_array.push(logEntry);
+            };
+            console.dir = function  dir (){
+                var 
+                logEntry = {dir: Array.prototype.slice.call(arguments)},
+                log_array = testFN.test_console_log ? testFN.test_console_log : (testFN.test_console_log=[]); 
+                log_array.push(logEntry);
+            };
+            
             testFN.started = Date.now();
             testFN(function(){
                 var stamp = Date.now();
+                console.log  = console.__swizzled.log;
+                console.dir  = console.__swizzled.dir;
+                
                 
                 if (doneCompleted) {
                     clearTimeout(doneCompleted);
@@ -550,7 +591,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 repeatKill=true;
                 
                 process.removeListener('uncaughtException',global_trap);
-
+                
                 onTestPass(testSet,testSetName,testFN,done);
                 
             });
@@ -558,6 +599,8 @@ var runTest=function(testSet,testSetName,testName,done){
         } catch (exception) {
             
             testFN.finished = Date.now();
+            console.log  = console.__swizzled.log;
+            console.dir  = console.__swizzled.dir;
             process.removeListener('uncaughtException',global_trap);
             err_callback(exception);
             
@@ -579,7 +622,7 @@ _app.run = function(failLimit,testLimit,cb){
     var testSetNames = Object.keys(_app.tests);
     
     clearTestStats();
-    _app.stats.finished = _app.stats.started = Date.now() ;
+    // _app.stats.finished = _app.stats.started = Date.now() ;
     
     // runTestSet will be called once for each element index of testSetName 
     var runTestSet = function (i) {
@@ -654,7 +697,8 @@ _app.run = function(failLimit,testLimit,cb){
     var testPaths = JSON.parse(testPathsJSON);
     console.log("Test configuration: (in test/tests.json)");
     console.dir(testPaths,{colors:true});
-    
+    selfTestNeeded = sourceCodeTestNeeded("selfTest",__filename);
+
     if (selfTestNeeded) {
         _app.tests.selfTest = {
             
@@ -676,6 +720,7 @@ _app.run = function(failLimit,testLimit,cb){
     Object.keys(testPaths).forEach(function(testSetName){
         runTestsIfNeeded (testSetName,testPaths[testSetName]);
     });
+    
 })(fs.readFileSync(path.join(path.dirname(__filename),"tests.json")));
 
 if (selfTestNeeded) {
