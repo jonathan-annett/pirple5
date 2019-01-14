@@ -500,13 +500,21 @@ var runTest=function(testSet,testSetName,testName,done){
                  var elapsed = Date.now()-testFN.started;
                  if ( elapsed < _app.timeout) {
                      testFN.finished = Date.now();
-                     testLogUpdate(testFN,testSetName,"WAIT","red");
+                     try {
+                         var _log = console.log;
+                         console.log  = console.__swizzled.log;
+                         testLogUpdate(testFN,testSetName,"WAIT","red");
+                     } finally {
+                         console.log  = _log;
+                     }
                      return (doneCompleted = setTimeout(timeoutChecker,_app.timeout_log_every));
                  }
                  doneCompleted=false;
                  repeatKill = true;
                  var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
                  testFN.finished = Date.now();
+                 console.log  = console.__swizzled.log;
+                 console.dir  = console.__swizzled.dir;
                  onTestFail(testSet,testSetName,testFN,
                      new Error(message),
                      done);
