@@ -1110,8 +1110,8 @@ lib.tests = {
                 var fileJSON = JSON.parse(fileData);
                 assert.equal(typeof fileJSON,'object');
                 assert.equal(fileJSON.constructor,Array);
-                done();
             });
+            done();
         });
         
     },
