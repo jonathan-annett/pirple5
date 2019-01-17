@@ -1111,6 +1111,7 @@ lib.tests = {
                 assert.equal(typeof fileJSON,'object');
                 assert.equal(fileJSON.constructor,Array);
             });
+            
             done();
         });
         
