@@ -204,65 +204,23 @@ javascript.colors = {
 
 // a rough and ready javascript colorizer
 // does not cope with comments, but does handle strings.
+var tok_delim = " .,;'\"+-*/\\\t\n:(){}".split('');
 javascript.colorize = function (src){
    var tokens = [];
    
    // tokenize the javascript source
-   src.split(" ").forEach(function(token,i){
-       if (i>0) tokens.push(' ');
-       token.split(".").forEach(function(token,i){
-           if (i>0) tokens.push('.');
-           token.split(",").forEach(function(token,i){
-               if (i>0) tokens.push(',');
-               token.split(";").forEach(function(token,i){
-                   if (i>0) tokens.push(';');
-                   token.split("'").forEach(function(token,i){
-                       if (i>0) tokens.push("'");
-                       token.split('"').forEach(function(token,i){
-                           if (i>0) tokens.push('"');
-                           token.split('+').forEach(function(token,i){
-                               if (i>0) tokens.push('+');
-                               token.split('-').forEach(function(token,i){
-                                   if (i>0) tokens.push('-');
-                                   token.split('*').forEach(function(token,i){
-                                       if (i>0) tokens.push('*');
-                                       token.split('/').forEach(function(token,i){
-                                           if (i>0) tokens.push('/');
-                                           token.split('\\').forEach(function(token,i){
-                                               if (i>0) tokens.push('\\');
-                                               token.split('\t').forEach(function(token,i){
-                                                   if (i>0) tokens.push('\t');
-                                                   token.split('\n').forEach(function(token,i){
-                                                       if (i>0) tokens.push('\n');
-                                                       token.split(':').forEach(function(token,i){
-                                                           if (i>0) tokens.push(':');
-                                                           token.split('(').forEach(function(token,i){
-                                                               if (i>0) tokens.push('(');
-                                                               token.split(')').forEach(function(token,i){
-                                                                   if (i>0) tokens.push(')');
-                                                                   token.split('{').forEach(function(token,i){
-                                                                       if (i>0) tokens.push('{');
-                                                                       token.split('}').forEach(function(token,i){
-                                                                           if (i>0) tokens.push('}');
-                                                                           tokens.push (token);
-                                                                       });
-                                                                   });
-                                                               });
-                                                           });
-                                                       });
-                                                   });
-                                               });
-                                           });
-                                       });
-                                   });
-                               });
-                           });
-                       });
-                   });
-               });    
-           });
-       });
-   });
+   var depth = 0;
+   var check = function(token,i){
+       if (i>0) tokens.push(tok_delim[depth]);
+       if (depth<tok_delim.length-1) {
+           depth++;
+           token.split(tok_delim[depth]).forEach(check);
+           depth--;
+       } else {
+            tokens.push(token);
+       }
+   };
+   src.split(tok_delim[depth]).forEach(check);
    
    var instr=false,escaped=false;
    // colorize the tokens
@@ -570,6 +528,38 @@ var onTestFail = function(testSet,testSetName,testFN,exception,done) {
     done();
 };
 
+var assert_shim=assert;
+if (process.execArgv.indexOf('--inspect')>=0 || process.execArgv.indexOf('--inspect-brk')>=0) {
+    assert_shim = function (is_ok){
+        if (!is_ok) debugger;
+        return assert(is_ok);
+    };
+    assert_shim.fail = assert.fail;
+    assert_shim.AssertionError = assert.AssertionError;
+    assert_shim.ok = function(is_ok) {
+            if (!is_ok) debugger;
+            return assert.ok(is_ok);
+        };
+    assert_shim.equal = function(a,b) {
+            if (a!==b) debugger;
+            return assert.equal(a,b);
+        };
+    assert_shim.notEqual = function(a,b) {
+            if (a===b) debugger;
+            return assert.notEqual(a,b);
+        };
+    assert_shim.deepEqual = assert.deepEqual;
+    assert_shim.deepStrictEqual = assert.deepStrictEqual;
+    assert_shim.notDeepEqual = assert.notDeepEqual;
+    assert_shim.notDeepStrictEqual = assert.notDeepStrictEqual;
+    assert_shim.strictEqual = assert.strictEqual;
+    assert_shim.notStrictEqual = assert.notStrictEqual;
+    assert_shim.throws = assert.throws;
+    assert_shim.doesNotThrow = assert.doesNotThrow;
+    assert_shim.ifError = assert.ifError;
+}
+
+
 var runTest=function(testSet,testSetName,testName,done){
     
     if ( typeof testSet==='object' && 
@@ -644,9 +634,9 @@ var runTest=function(testSet,testSetName,testName,done){
                 process.removeListener('uncaughtException',global_trap);
                 err_callback(exception);
         };
-        
+
         process.on('uncaughtException',global_trap);
-        
+
         try {
 
             if (testFN.test_console_log) {
@@ -655,12 +645,14 @@ var runTest=function(testSet,testSetName,testName,done){
             }
             
             console.__swizzled = console.__swizzled || { log: console.log, dir : console.dir};
+            
             console.log = function log (){
                 var 
                 logEntry = {log: Array.prototype.slice.call(arguments)},
                 log_array = testFN.test_console_log ? testFN.test_console_log : (testFN.test_console_log=[]); 
                 log_array.push(logEntry);
             };
+            
             console.dir = function  dir (){
                 var 
                 logEntry = {dir: Array.prototype.slice.call(arguments)},
@@ -694,7 +686,7 @@ var runTest=function(testSet,testSetName,testName,done){
                 
                 onTestPass(testSet,testSetName,testFN,done);
                 
-            });
+            },assert_shim);
             
         } catch (exception) {
             
@@ -818,6 +810,10 @@ _app.run = function(failLimit,testLimit,cb){
     }
     
     Object.keys(testPaths).forEach(function(testSetName){
+        var fn = testPaths[testSetName];
+        if (fn.substr(-3)===".js") {
+            testPaths[testSetName]=fn.substr(0,fn.length-3);
+        }
         runTestsIfNeeded (testSetName,testPaths[testSetName]);
     });
     
