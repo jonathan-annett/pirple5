@@ -28,8 +28,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 "use strict";
 /* explode-require the node-libs we need */
 var needed =
-    "assert,fs,path,crypto";
-var [assert,fs,path,crypto] = needed.split(",").map(require);
+    "assert,fs,path,crypto,perf_hooks";
+var [assert,fs,path,crypto,perf_hooks] = needed.split(",").map(require),
+    ms = perf_hooks.performance.now.bind(perf_hooks.performance),
+    ms_txt = function(a,b,dec){
+        if (b) a=b-a;
+        b = a.toString().split('.');
+        return b[0] + "." + b[1].substr(0,dec);
+    };
 
 var _app = module.exports = {};
 
@@ -492,13 +498,14 @@ var left_pad=function(text,pad,color) {
 };
 
 var msec_pad=function(testFN,pad,color) {
-   return right_pad(String(testFN.finished-testFN.started),pad,color);
+   return right_pad(ms_txt(testFN.started,testFN.finished,2),pad,color);
+   //return right_pad(String((testFN.finished-testFN.started)),pad,color);
 };
 
 var testLogUpdate = function (testFN,testSetName,STAT,statColor) {
     console.log( left_pad("[" + testSetName + " # "+testFN.index+"]",14,"normal")+
     _app.colors[statColor] +" "+STAT.substr(0,4)+" "+
-    msec_pad(testFN,6,"blue") +" "+
+    msec_pad(testFN,8,"blue") +" "+
     left_pad(testFN.testName,process.stdout.columns-30,"yellow"));
 };
 
@@ -579,9 +586,9 @@ var runTest=function(testSet,testSetName,testName,done){
         var doneCompleted,
              
             timeoutChecker = function(){
-                 var elapsed = Date.now()-testFN.started;
+                 var elapsed = ms()-testFN.started;
                  if ( elapsed < _app.timeout) {
-                     testFN.finished = Date.now();
+                     testFN.finished = ms();
                      try {
                          var _log = console.log;
                          console.log  = console.__swizzled.log;
@@ -594,7 +601,7 @@ var runTest=function(testSet,testSetName,testName,done){
                  doneCompleted=false;
                  repeatKill = true;
                  var message = "Test did not complete after "+String(Math.round(_app.timeout/1000))+" seconds";
-                 testFN.finished = Date.now();
+                 testFN.finished = ms();
                  console.log  = console.__swizzled.log;
                  console.dir  = console.__swizzled.dir;
                  onTestFail(testSet,testSetName,testFN,
@@ -628,7 +635,7 @@ var runTest=function(testSet,testSetName,testName,done){
         };
         
         global_trap = function (exception) {
-                testFN.finished = Date.now();
+                testFN.finished = ms();
                 console.log  = console.__swizzled.log;
                 console.dir  = console.__swizzled.dir;
                 process.removeListener('uncaughtException',global_trap);
@@ -660,9 +667,9 @@ var runTest=function(testSet,testSetName,testName,done){
                 log_array.push(logEntry);
             };
             
-            testFN.started = Date.now();
+            testFN.started = ms();
             testFN(function(){
-                var stamp = Date.now();
+                var stamp = ms();
                 console.log  = console.__swizzled.log;
                 console.dir  = console.__swizzled.dir;
                 
@@ -690,7 +697,7 @@ var runTest=function(testSet,testSetName,testName,done){
             
         } catch (exception) {
             
-            testFN.finished = Date.now();
+            testFN.finished = ms();
             console.log  = console.__swizzled.log;
             console.dir  = console.__swizzled.dir;
             process.removeListener('uncaughtException',global_trap);
@@ -714,7 +721,7 @@ _app.run = function(failLimit,testLimit,cb){
     var testSetNames = Object.keys(_app.tests);
     
     clearTestStats();
-    // _app.stats.finished = _app.stats.started = Date.now() ;
+    // _app.stats.finished = _app.stats.started = ms() ;
     
     // runTestSet will be called once for each element index of testSetName 
     var runTestSet = function (i) {
