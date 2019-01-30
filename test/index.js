@@ -61,8 +61,8 @@ _app.colors = {
     cyan : "\x1b[36m",
     white : "\x1b[37m"
 };
-_app.colors.args  = _app.colors.yellow;
-_app.colors.symbol  = _app.colors.yellow;
+_app.colors.args      = _app.colors.yellow;
+_app.colors.symbol    = _app.colors.yellow;
 _app.colors.property  = _app.colors.magenta;
 _app.colors.error   = _app.colors.red;
 _app.colors.keyword = _app.colors.green;
@@ -131,10 +131,15 @@ functionSourceCode= function(testSetName,fn,err_line,errMessage) {
         }).join("\n");
     }
 },
-sourceCodeTestNeeded = function(testName,filename) {
+sourceCodeTestNeeded = function(testName,filename,src_filename) {
     var testStatsFn = path.join(path.dirname(filename),path.basename(filename)+".ver.json"),
     testNeeded = !fs.existsSync(testStatsFn),
-    sha256sum = crypto.createHash("sha256").update(fs.readFileSync(filename), "utf8").digest("base64");
+    hasher=crypto.createHash("sha256");
+    hasher.update(fs.readFileSync(filename), "utf8");
+    if (src_filename) {
+        hasher.update(fs.readFileSync(src_filename), "utf8");
+    }
+    var sha256sum = hasher.digest("base64");
     var lastFail=false;
     if (!testNeeded) {
         var selfTestStats = JSON.parse(fs.readFileSync(testStatsFn));
@@ -166,9 +171,10 @@ sourceCodeTestNeeded = function(testName,filename) {
     return testNeeded;
 },
 selfTestNeeded,
-runTestsIfNeeded = function (testName,rel_path) {
+runTestsIfNeeded = function (testName,rel_path,rel_src_path) {
     var filename = path.join(path.dirname(__filename),rel_path+".js");
-    if (sourceCodeTestNeeded(testName,filename)) {
+    var src_filename = rel_src_path ?  path.join(path.dirname(__filename),rel_src_path+".js") : undefined;
+    if (sourceCodeTestNeeded(testName,filename,src_filename)) {
         functionSourceCodeCache[testName]=fs.readFileSync(filename).toString();
         
         var tests = _app.tests[testName] =  require(rel_path).tests;
@@ -821,7 +827,16 @@ _app.run = function(failLimit,testLimit,cb){
         if (fn.substr(-3)===".js") {
             testPaths[testSetName]=fn.substr(0,fn.length-3);
         }
-        runTestsIfNeeded (testSetName,testPaths[testSetName]);
+        
+        if (fn.substr(-12)===".js.tests.js") {
+            runTestsIfNeeded (
+                testSetName,
+                testPaths[testSetName],fn.substr(0,fn.length-12)
+            );
+        } else {
+            runTestsIfNeeded (testSetName,testPaths[testSetName]);
+        }
+
     });
     
 })(fs.readFileSync(path.join(path.dirname(__filename),"tests.json")));
